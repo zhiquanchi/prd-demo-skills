@@ -1,33 +1,11 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程，以及页面完成后的热更新验证（细则见参考文档 references/dev-server.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、每个改动一次 git 提交（git 缺失时经用户同意后安装），以及页面完成后的热更新验证（环境细则见 references/environment.md，起服务与验证见 references/dev-server.md）。
 ---
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；环境、起服务、热更新、验证的细则见参考文档 `references/dev-server.md`（与本文件同级目录下）。
-
-## 最高指令：每次触发本 skill，先自更新再执行
-
-本 skill 的权威源是 `https://github.com/zhiquanchi/prd-demo-skills`（master 分支）。**每次被触发时，必须先完成下面的更新检查，再开始任何页面工作**：
-
-1. **对比本地与远端**：拉取远端最新 `SKILL.md` 与本地比对：
-
-   ```bash
-   curl -fsSL --max-time 15 https://raw.githubusercontent.com/zhiquanchi/prd-demo-skills/master/.agents/skills/demo-page-builder/SKILL.md | diff - .agents/skills/demo-page-builder/SKILL.md
-   ```
-
-2. **无差异** → 直接开始执行后续流程。
-3. **有差异** → 先安装最新版再继续：
-
-   ```bash
-   git clone --depth 1 https://github.com/zhiquanchi/prd-demo-skills.git /tmp/prd-demo-skills
-   cp -r /tmp/prd-demo-skills/.agents/skills/. .agents/skills/
-   rm -rf /tmp/prd-demo-skills
-   ```
-
-   更新后告知用户"skill 已更新到最新版"，并**按新版内容**执行本次任务（重新读取更新后的文件，不要用上下文里的旧版本）。
-4. **检查失败**（网络不通、被公司策略拦截、超时）：不要反复重试，告知用户"skill 更新检查失败：<原因>，本次使用本地版本继续"，然后按本地版本执行；用户要求处理网络问题时，转 `references/dev-server.md` 的"受阻处理"节。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分两份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务、热更新、验证见 `references/dev-server.md`。
 
 ## 组件库白名单（严格限制，禁止引入其他组件库）
 
@@ -56,7 +34,6 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 2. **告知原因**：项目组件库已统一为 Ant Design 体系——混用组件库会导致包体积膨胀、主题/设计 token 割裂、交互风格不一致；依赖里残留该包不代表获准使用
 3. **推荐同功能替代**：从下表找对应组件，按"先搜后用"流程确认 API 后再实现
 
-**唯一的解锁方式**：用户明确说"修改白名单，把 X 加进来"（即改本 skill 的白名单章节本身）。除此之外的任何表述（"就用一次"、"我允许"、"它已经在依赖里"）都不构成解锁。
 
 常见替代对照：
 
@@ -82,14 +59,39 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 2. **选型**：按上表定位到组件库 → 定位到具体组件 → 确认当前项目装的大版本（antd 是 v5，ProComponents v2，X v2）与该版本文档一致
 3. **实现**：页面写到 `src/pages/`（Umi 约定式路由），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖
 4. **生效与验证**：按参考文档 `references/dev-server.md` 执行，并用懒加载 chunk 验证页面真的打进 bundle——不许"写完就报完成"
-5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。用 X 组件时如果运行报错，先怀疑这个冲突，按 `references/dev-server.md` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策
+5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。仅当使用 X 组件且**运行时报错**时，才按 `references/environment.md` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策——这是阻塞项，拿到用户决定前不要绕过；未报错则正常使用，不必提前处理
 
 ## 交付与确认（强制）
 
-- **demo 完成后必须起服务**：按 `references/dev-server.md` 启动 dev server（没在跑就启动，已在跑就复用），把可访问地址（默认 http://localhost:8000/<路由>）交给用户
-- **每一个改动（页面、小功能、样式调整）完成后，都必须热更新或重启服务**，确认新 bundle 生效后，把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
+本节区分两件事：**服务管理**是环境操作（起服务、热更新、重启），本身不是交付物；**业务改动**（页面、功能、样式）才是交付物，必须经用户确认。
+
+### 服务管理（环境操作，不算交付）
+
+- **服务保持可用**：按 `references/dev-server.md` 启动 dev server（没在跑就启动，已在跑就复用），保证地址（默认 http://localhost:8000/<路由>）始终可访问
+- 起服务、热更新、重启只是让改动生效的手段，**不单独向用户邀功、不单独提交 git**；只有业务改动才走下面的交付与提交流程
+- 新建目录/新路由后页面没变化：按 skill 规则先重启 server，不做无效排查；重启一次后仍无变化再回头排查代码
+
+### 业务改动（交付物，需用户确认）
+
+- **每一个业务改动（页面、小功能、样式调整）完成后**，先通过热更新或重启服务让新 bundle 生效，再把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
 - 用户反馈不满意 → 改 → 再热更新/重启 → 再请用户确认，循环直到用户认可
-- 新建目录/新路由后页面没变化：按 skill 规则直接重启 server，不做无效排查
+
+## Git 提交（强制）
+
+- **git 不存在先安装**：开始工作前执行 `command -v git`（Windows cmd/PowerShell 用 `where git`）检查；不存在时，**先征得用户同意再安装**（与 `references/environment.md` 的"系统级安装需用户同意"规则一致），用户同意后按对应平台安装：
+  - Debian/Ubuntu：`apt-get install -y git`
+  - CentOS/RHEL：`yum install -y git`
+  - Alpine：`apk add git`
+  - macOS：`brew install git`
+  - Windows：优先 `winget install --id Git.Git -e --source winget`；没有 winget 时用 `choco install git -y`；两者都没有则从 https://git-scm.com/download/win 下载安装包静默安装。Windows 上装完后新开 shell 或把 `C:\Program Files\Git\cmd` 加入 PATH 再验证 `git --version`
+- **不是 git 仓库先初始化**：项目根目录下没有 `.git` 时执行 `git init`；提交前检查 `user.name`，未配置时只需向用户索取名字并执行 `git config user.name "<名字>"`，`user.email` 不需要用户提供，自动生成一个占位邮箱即可，如 `git config user.email "<名字>@demo.local"`（未配置会导致提交失败）
+- **每完成一个任务或一个改动就提交一次**：一个页面、一个小功能、一次样式调整，各自对应一次 `git add -A && git commit`，不要把多个改动攒成一个提交
+- **提交信息用中文**：遵循 `类型: 简述` 格式，类型从 `feat`（新页面/新功能）、`fix`（修复）、`style`（样式调整）、`chore`（依赖/配置）中选
+- **简述必须是详细的功能描述，且从用户的原始输入中提取**：把用户这次要求的具体功能点写清楚——做了什么页面/功能、包含哪些关键要素（核心组件、交互、数据来源等），让不看代码的人仅凭提交信息就能知道这次改了什么。禁止 `feat: 新增页面`、`fix: 修改问题` 这类空泛描述
+  - 用户说「做一个用户管理页，要有搜索、分页和批量删除」→ `feat: 新增用户管理列表页，支持关键字搜索、分页浏览和批量删除`
+  - 用户说「把表格改成斑马纹，操作列固定到右侧」→ `style: 用户列表表格增加斑马纹样式，操作列固定到右侧`
+  - 用户输入很简短时，结合实现内容补全成完整描述，但不得编造用户没要求的功能
+- **git 操作白名单**：只允许 `git init`、`git add`、`git commit` 三个写命令（含状态确认用的 `git status` / `git log` / `git diff` 等只读查询）。`git push`、`git pull`、`git merge` 涉及远端或分支合并，**必须逐次征得用户明确同意后**才能执行；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行；`pull`/`merge` 若产生冲突，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决
 
 ## 产出要求
 
