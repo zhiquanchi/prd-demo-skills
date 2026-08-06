@@ -93,7 +93,12 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 ## Git 提交（强制）
 
-- **git 不存在先安装**：开始工作前执行 `command -v git` 检查；不存在则由 agent 自行安装（Debian/Ubuntu 用 `apt-get install -y git`，CentOS/RHEL 用 `yum install -y git`，Alpine 用 `apk add git`，macOS 用 `brew install git`），装完再继续
+- **git 不存在先安装**：开始工作前执行 `command -v git`（Windows cmd/PowerShell 用 `where git`）检查；不存在则由 agent 自行安装，装完再继续：
+  - Debian/Ubuntu：`apt-get install -y git`
+  - CentOS/RHEL：`yum install -y git`
+  - Alpine：`apk add git`
+  - macOS：`brew install git`
+  - Windows：优先 `winget install --id Git.Git -e --source winget`；没有 winget 时用 `choco install git -y`；两者都没有则从 https://git-scm.com/download/win 下载安装包静默安装。Windows 上装完后新开 shell 或把 `C:\Program Files\Git\cmd` 加入 PATH 再验证 `git --version`
 - **不是 git 仓库先初始化**：项目根目录下没有 `.git` 时执行 `git init`，并按需配置 `user.name` / `user.email`（未配置会导致提交失败）
 - **每完成一个任务或一个改动就提交一次**：一个页面、一个小功能、一次样式调整，各自对应一次 `git add -A && git commit`，不要把多个改动攒成一个提交
 - **提交信息用中文**：遵循 `类型: 简述` 格式，类型从 `feat`（新页面/新功能）、`fix`（修复）、`style`（样式调整）、`chore`（依赖/配置）中选，例如 `feat: 新增用户管理列表页`
