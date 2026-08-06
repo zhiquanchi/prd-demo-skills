@@ -1,11 +1,11 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程，以及页面完成后的热更新验证（转 prd-demo-dev-server skill）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程，以及页面完成后的热更新验证（转 dev-server skill）。
 ---
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；环境、起服务、热更新、验证的细节交给 `prd-demo-dev-server` skill。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；环境、起服务、热更新、验证的细节交给 `dev-server` skill。
 
 ## 组件库白名单（严格限制，禁止引入其他组件库）
 
@@ -27,12 +27,12 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
    - 禁止凭记忆硬写不熟悉的组件 API；查到再写
 2. **选型**：按上表定位到组件库 → 定位到具体组件 → 确认当前项目装的大版本（antd 是 v5，ProComponents v2，X v2）与该版本文档一致
 3. **实现**：页面写到 `src/pages/`（Umi 约定式路由），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖
-4. **生效与验证**：按 `prd-demo-dev-server` skill（`.agents/skills/prd-demo-dev-server/SKILL.md`）执行，并用懒加载 chunk 验证页面真的打进 bundle——不许"写完就报完成"
-5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。用 X 组件时如果运行报错，先怀疑这个冲突，按 `prd-demo-dev-server` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策
+4. **生效与验证**：按 `dev-server` skill（`.agents/skills/demo-page-builder/skills/dev-server/SKILL.md`）执行，并用懒加载 chunk 验证页面真的打进 bundle——不许"写完就报完成"
+5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。用 X 组件时如果运行报错，先怀疑这个冲突，按 `dev-server` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策
 
 ## 交付与确认（强制）
 
-- **demo 完成后必须起服务**：按 `prd-demo-dev-server` skill 启动 dev server（没在跑就启动，已在跑就复用），把可访问地址（默认 http://localhost:8000/<路由>）交给用户
+- **demo 完成后必须起服务**：按 `dev-server` skill 启动 dev server（没在跑就启动，已在跑就复用），把可访问地址（默认 http://localhost:8000/<路由>）交给用户
 - **每一个改动（页面、小功能、样式调整）完成后，都必须热更新或重启服务**，确认新 bundle 生效后，把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
 - 用户反馈不满意 → 改 → 再热更新/重启 → 再请用户确认，循环直到用户认可
 - 新建目录/新路由后页面没变化：按 skill 规则直接重启 server，不做无效排查
