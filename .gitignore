@@ -24,3 +24,8 @@ npm-debug.log*
 # ide
 .idea
 .vscode
+
+# 本地 React 项目文件（本仓库仅分发 skill，不跟踪项目本体）
+/src/pages
+/package.json
+/package-lock.json
