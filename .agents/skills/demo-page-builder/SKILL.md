@@ -106,7 +106,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
   - 用户说「做一个用户管理页，要有搜索、分页和批量删除」→ `feat: 新增用户管理列表页，支持关键字搜索、分页浏览和批量删除`
   - 用户说「把表格改成斑马纹，操作列固定到右侧」→ `style: 用户列表表格增加斑马纹样式，操作列固定到右侧`
   - 用户输入很简短时，结合实现内容补全成完整描述，但不得编造用户没要求的功能
-- 只提交、不推送：不执行 `git push`、`git reset --hard` 等操作，除非用户明确要求
+- **git 操作白名单**：只允许 `git init`、`git add`、`git commit`、`git push` 四个命令（含状态确认用的 `git status` / `git log` / `git diff` 等只读查询）；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`merge`、`stash`、`clean`、`branch -D`、`push --force` 等）全部禁止，无论任何理由都不得执行
 
 ## 产出要求
 
