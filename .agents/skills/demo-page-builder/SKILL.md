@@ -96,7 +96,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 ## Git 提交（强制）
 
-- **git 不存在先安装**：开始工作前执行 `command -v git`（Windows cmd/PowerShell 用 `where git`）检查；不存在则由 agent 自行安装，装完再继续：
+- **git 不存在先安装**：开始工作前执行 `command -v git`（Windows cmd/PowerShell 用 `where git`）检查；不存在时，**先征得用户同意再安装**（与 `references/dev-server.md` 的"系统级安装需用户同意"规则一致），用户同意后按对应平台安装：
   - Debian/Ubuntu：`apt-get install -y git`
   - CentOS/RHEL：`yum install -y git`
   - Alpine：`apk add git`
