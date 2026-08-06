@@ -83,6 +83,8 @@ description: demo-page-builder 的子 skill。安装依赖、启动/重启 Umi M
 
 ## 安装依赖
 
+本 skill 目录下的 `package.json`（与本 SKILL.md 同级）是本项目**已知可用的依赖清单基准**：项目 `package.json` 丢失、被改坏、或需要在新目录快速重建环境时，直接复制它再安装。
+
 ```bash
 npm install --legacy-peer-deps --no-audit --no-fund
 ```
