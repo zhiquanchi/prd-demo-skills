@@ -1,6 +1,6 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、每个改动一次 git 提交（git 缺失时自动安装），以及页面完成后的热更新验证（细则见参考文档 references/dev-server.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、每个改动一次 git 提交（git 缺失时经用户同意后安装），以及页面完成后的热更新验证（细则见参考文档 references/dev-server.md）。
 ---
 
 # Demo 页面构建总控
