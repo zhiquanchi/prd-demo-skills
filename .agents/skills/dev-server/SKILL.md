@@ -1,6 +1,6 @@
 ---
 name: dev-server
-description: demo-page-builder 的子 skill。安装依赖、启动/重启 Umi Max dev server、使用热更新并验证页面生效的完整流程。当需要装依赖、起服务、让新页面或新功能生效、排查页面空白时使用。
+description: demo-page-builder 的配套 skill（按 Agent Skills 标准为平级目录）。安装依赖、启动/重启 Umi Max dev server、使用热更新并验证页面生效的完整流程。当需要装依赖、起服务、让新页面或新功能生效、排查页面空白时使用。
 ---
 
 # prd-demo-react 开发服务器工作流
