@@ -18,13 +18,19 @@ React demo 页面构建的 agent skills，适用于 Umi Max + Ant Design 技术�
 
 ## 安装方式一：让 agent 自动安装（推荐）
 
-在支持 skills 的 agent（如 Kimi Code CLI、Claude Code）会话中，直接对 agent 说：
+在支持 skills 的 agent 会话中，直接对 agent 说：
 
-> 把 https://github.com/zhiquanchi/prd-demo-skills 仓库里的 skills 安装到当前项目的 .agents/skills/ 目录下
+> 把 https://github.com/zhiquanchi/prd-demo-skills 仓库里的 skills 安装到当前项目
 
-agent 会自动 clone/下载该仓库，并把 `.agents/skills/` 复制到你的项目根目录。安装后新开会话即可生效。
+**不需要指定目录**——agent 会自动检测自己是什么工具，并把 skills 装到该工具对应的项目级 skill 目录：
 
-使用 Claude Code 时对应目录为 `.claude/skills/`，把上面指令中的路径换成 `.claude/skills/` 即可。
+| agent 工具 | 自动检测后安装到 |
+|---|---|
+| Kimi Code CLI | `.agents/skills/` |
+| Claude Code | `.claude/skills/` |
+| 其他兼容 Agent Skills 标准的工具 | 按该工具的 skill 扫描约定（一般是 `<配置目录>/skills/`） |
+
+检测依据：agent 当前会话已加载的 skill 列表来自哪个目录、项目里已存在哪个配置目录（`.agents/` / `.claude/`）。检测不到时就地询问你，不会装错位置。安装后新开会话即可生效。
 
 ## 安装方式二：人工手动安装
 
