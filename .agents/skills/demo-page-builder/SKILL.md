@@ -1,6 +1,6 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程，以及页面完成后的热更新验证（细则见参考文档 references/dev-server.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、每个改动一次 git 提交（git 缺失时自动安装），以及页面完成后的热更新验证（细则见参考文档 references/dev-server.md）。
 ---
 
 # Demo 页面构建总控
@@ -90,6 +90,14 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **每一个改动（页面、小功能、样式调整）完成后，都必须热更新或重启服务**，确认新 bundle 生效后，把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
 - 用户反馈不满意 → 改 → 再热更新/重启 → 再请用户确认，循环直到用户认可
 - 新建目录/新路由后页面没变化：按 skill 规则直接重启 server，不做无效排查
+
+## Git 提交（强制）
+
+- **git 不存在先安装**：开始工作前执行 `command -v git` 检查；不存在则由 agent 自行安装（Debian/Ubuntu 用 `apt-get install -y git`，CentOS/RHEL 用 `yum install -y git`，Alpine 用 `apk add git`，macOS 用 `brew install git`），装完再继续
+- **不是 git 仓库先初始化**：项目根目录下没有 `.git` 时执行 `git init`，并按需配置 `user.name` / `user.email`（未配置会导致提交失败）
+- **每完成一个任务或一个改动就提交一次**：一个页面、一个小功能、一次样式调整，各自对应一次 `git add -A && git commit`，不要把多个改动攒成一个提交
+- **提交信息用中文**：遵循 `类型: 简述` 格式，类型从 `feat`（新页面/新功能）、`fix`（修复）、`style`（样式调整）、`chore`（依赖/配置）中选，例如 `feat: 新增用户管理列表页`
+- 只提交、不推送：不执行 `git push`、`git reset --hard` 等操作，除非用户明确要求
 
 ## 产出要求
 
