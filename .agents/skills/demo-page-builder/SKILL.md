@@ -109,7 +109,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
   - 用户说「做一个用户管理页，要有搜索、分页和批量删除」→ `feat: 新增用户管理列表页，支持关键字搜索、分页浏览和批量删除`
   - 用户说「把表格改成斑马纹，操作列固定到右侧」→ `style: 用户列表表格增加斑马纹样式，操作列固定到右侧`
   - 用户输入很简短时，结合实现内容补全成完整描述，但不得编造用户没要求的功能
-- **git 操作白名单**：只允许 `git init`、`git add`、`git commit`、`git push`、`git pull`、`git merge` 六个命令（含状态确认用的 `git status` / `git log` / `git diff` 等只读查询）；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行；`pull`/`merge` 若产生冲突，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决
+- **git 操作白名单**：只允许 `git init`、`git add`、`git commit` 三个写命令（含状态确认用的 `git status` / `git log` / `git diff` 等只读查询）。`git push`、`git pull`、`git merge` 涉及远端或分支合并，**必须逐次征得用户明确同意后**才能执行；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行；`pull`/`merge` 若产生冲突，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决
 
 ## 产出要求
 
