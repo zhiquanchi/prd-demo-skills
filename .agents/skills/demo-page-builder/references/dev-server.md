@@ -87,6 +87,7 @@ npm install --legacy-peer-deps --no-audit --no-fund
 ```
 
 - 必须加 `--legacy-peer-deps`：`@ant-design/x` 整个 v2 系列 peer 要求 antd ^6，但本项目钉在 antd ^5.25.0，严格模式必报 ERESOLVE。根治方案（二选一，需用户确认）：antd 升 6，或 `@ant-design/x` 降 1.x。
+- 清单里的 `tailwindcss`/`tailwind-merge`、`tinymce`、`@xyflow/react`、`socket.io-client` 等是历史残留或特定场景工具包，**不代表获准作为 UI 组件库使用**——UI 组件仍只走 SKILL.md 的白名单（antd / ProComponents / Ant Design X）；fabric/konva/mermaid/echarts 等绘制引擎仅在需求明确涉及图表/画布时可用。
 - 若报 `ETXTBSY`（esbuild postinstall，WSL 常见）：直接重跑一次 `npm install` 即可，已下载的包会复用。
 - npm 11 会拦截 postinstall 脚本（allow-scripts 警告）。只要 `node_modules/@esbuild/linux-x64/bin/esbuild --version` 能输出版本号，就不影响运行，无需处理。
 
