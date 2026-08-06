@@ -12,7 +12,7 @@
 /.umi-production
 /.umi-test
 
-# local runtime (skill: dev-server)
+# local runtime (see demo-page-builder/references/dev-server.md)
 /.runtime
 
 # misc
