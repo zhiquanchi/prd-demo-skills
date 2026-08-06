@@ -97,7 +97,7 @@ npm install --legacy-peer-deps --no-audit --no-fund
 npm run dev   # max dev，后台运行，disable_timeout
 ```
 
-- 默认地址：Local `http://localhost:8000`，Network `http://172.25.136.185:8000`。
+- 默认地址：Local `http://localhost:8000`；Network 地址以 dev server 启动日志的实际输出为准（不同机器 IP 不同）。
 - 看到 `App listening at` 且 Webpack `Compiled` 即为就绪。
 
 ## 核心规则：每个页面/小功能完成后必须热更新或重启
