@@ -20,17 +20,24 @@ React demo 页面构建的 agent skills，适用于 Umi Max + Ant Design 技术�
 
 在支持 skills 的 agent 会话中，直接对 agent 说：
 
-> 把 https://github.com/zhiquanchi/prd-demo-skills 仓库里的 skills 安装到当前项目
+> 把 https://github.com/zhiquanchi/prd-demo-skills 仓库里的 skills 安装好
 
-**不需要指定目录**——agent 会自动检测自己是什么工具，并把 skills 装到该工具对应的项目级 skill 目录：
+**不需要指定目录**——agent 自动检测自己是哪种客户端，按下表选择安装位置（项目级优先；项目不是 git 仓库或客户端只扫用户级时，装用户级）：
 
-| agent 工具 | 自动检测后安装到 |
-|---|---|
-| Kimi Code CLI | `.agents/skills/` |
-| Claude Code | `.claude/skills/` |
-| 其他兼容 Agent Skills 标准的工具 | 按该工具的 skill 扫描约定（一般是 `<配置目录>/skills/`） |
+| 客户端 | 项目级（随项目走） | 用户级（所有项目共享） |
+|---|---|---|
+| Kimi Code CLI | `<项目根>/.agents/skills/` 或 `.kimi-code/skills/` ⚠️见下 | `~/.agents/skills/` 或 `~/.kimi-code/skills/` |
+| Claude Code | `<项目根>/.claude/skills/` | `~/.claude/skills/` |
+| OpenAI Codex CLI | `<项目根>/.agents/skills/`（还会向上扫描父目录） | `~/.agents/skills/`（或 `~/.codex/skills/`） |
+| Gemini CLI | `<项目根>/.gemini/skills/` | `~/.gemini/skills/` |
+| Antigravity | `<项目根>/.agents/skills/` | 其全局 skill 目录 |
+| opencode | `<项目根>/.agents/skills/` | `~/.config/opencode/skills/` |
+| Cursor | `<项目根>/.cursor/skills/` | — |
+| 其他兼容 Agent Skills 标准的客户端 | 优先 `.agents/skills/`（跨工具通用约定），装完用 `/skills` 类命令确认真的被列出 | 同左 |
 
-检测依据：agent 当前会话已加载的 skill 列表来自哪个目录、项目里已存在哪个配置目录（`.agents/` / `.claude/`）。检测不到时就地询问你，不会装错位置。安装后新开会话即可生效。
+**⚠️ Kimi Code 的重要前提**：项目级扫描以"向上查找最近的 `.git` 目录"定位项目根——**项目不是 git 仓库时项目级 skills 不会被加载**，必须装到用户级 `~/.agents/skills/`（Windows 即 `C:\Users\<你>\.agents\skills\`）。装完新开一个会话，确认 skill 列表里出现 `demo-page-builder` 再用。
+
+检测依据：agent 当前会话已加载的 skill 列表来自哪个目录、项目里已存在哪个配置目录、项目是否为 git 仓库。检测不到时就地询问你，不会装错位置。**装完必须验证**：新开会话，让 agent 列出可用 skills，确认 `demo-page-builder` 在其中；不在就换用户级目录重装。
 
 ## 安装方式二：人工手动安装
 
@@ -38,11 +45,14 @@ React demo 页面构建的 agent skills，适用于 Umi Max + Ant Design 技术�
 # 1. 克隆本仓库（任意临时位置）
 git clone https://github.com/zhiquanchi/prd-demo-skills.git /tmp/prd-demo-skills
 
-# 2. 复制 skills 到你的项目根目录（Claude Code 用户改为 .claude/skills）
+# 2. 按上表复制到对应目录。示例（Kimi Code，项目为 git 仓库）：
 mkdir -p /path/to/your-project/.agents
 cp -r /tmp/prd-demo-skills/.agents/skills /path/to/your-project/.agents/
+#    项目不是 git 仓库时装用户级（全项目生效）：
+#    Linux/macOS: cp -r /tmp/prd-demo-skills/.agents/skills ~/.agents/
+#    Windows(PS): xcopy /E /I C:\path\to\prd-demo-skills\.agents\skills %USERPROFILE%\.agents\skills
 
-# 3. 重开 agent 会话，skill 列表会重新扫描加载
+# 3. 重开 agent 会话，确认 skill 列表里出现 demo-page-builder
 ```
 
 只需要复制 `demo-page-builder` 一个目录即可，`references/` 支撑材料已内嵌其中。
