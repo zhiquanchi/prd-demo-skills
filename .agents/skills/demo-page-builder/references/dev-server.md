@@ -1,9 +1,6 @@
----
-name: dev-server
-description: demo-page-builder 的配套 skill（按 Agent Skills 标准为平级目录）。安装依赖、启动/重启 Umi Max dev server、使用热更新并验证页面生效的完整流程。当需要装依赖、起服务、让新页面或新功能生效、排查页面空白时使用。
----
+# 开发服务器工作流（demo-page-builder 的参考文档）
 
-# prd-demo-react 开发服务器工作流
+> 本文件是 `demo-page-builder` skill 的 additional material，不是独立 skill。涉及装依赖、起服务、热更新、验证时，由 demo-page-builder 的流程引导到这里执行。
 
 适用于 `/root/prd-demo-react`（Umi Max 4 + antd 5 + React 18）。
 
@@ -83,7 +80,7 @@ description: demo-page-builder 的配套 skill（按 Agent Skills 标准为平�
 
 ## 安装依赖
 
-本 skill 目录下的 `package.json`（与本 SKILL.md 同级）是本项目**已知可用的依赖清单基准**：项目 `package.json` 丢失、被改坏、或需要在新目录快速重建环境时，直接复制它再安装。
+与本文件同级的 `package.json`（`references/package.json`）是本项目**已知可用的依赖清单基准**：项目 `package.json` 丢失、被改坏、或需要在新目录快速重建环境时，直接复制它再安装。
 
 ```bash
 npm install --legacy-peer-deps --no-audit --no-fund
