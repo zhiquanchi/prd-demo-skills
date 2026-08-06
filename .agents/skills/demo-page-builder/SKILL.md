@@ -99,7 +99,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
   - Alpine：`apk add git`
   - macOS：`brew install git`
   - Windows：优先 `winget install --id Git.Git -e --source winget`；没有 winget 时用 `choco install git -y`；两者都没有则从 https://git-scm.com/download/win 下载安装包静默安装。Windows 上装完后新开 shell 或把 `C:\Program Files\Git\cmd` 加入 PATH 再验证 `git --version`
-- **不是 git 仓库先初始化**：项目根目录下没有 `.git` 时执行 `git init`，并按需配置 `user.name` / `user.email`（未配置会导致提交失败）
+- **不是 git 仓库先初始化**：项目根目录下没有 `.git` 时执行 `git init`；提交前检查 `user.name`，未配置时只需向用户索取名字并执行 `git config user.name "<名字>"`，`user.email` 不需要用户提供，自动生成一个占位邮箱即可，如 `git config user.email "<名字>@demo.local"`（未配置会导致提交失败）
 - **每完成一个任务或一个改动就提交一次**：一个页面、一个小功能、一次样式调整，各自对应一次 `git add -A && git commit`，不要把多个改动攒成一个提交
 - **提交信息用中文**：遵循 `类型: 简述` 格式，类型从 `feat`（新页面/新功能）、`fix`（修复）、`style`（样式调整）、`chore`（依赖/配置）中选，例如 `feat: 新增用户管理列表页`
 - 只提交、不推送：不执行 `git push`、`git reset --hard` 等操作，除非用户明确要求
