@@ -16,8 +16,10 @@ description: demo-page-builder 的子 skill。安装依赖、启动/重启 Umi M
 1. **验证现有 node 是否是真的 Node.js**（`node` 可能是 bun 的 wrapper，例如本机 `/usr/local/bin/node`；这条各平台通用）：
 
    ```bash
-   node -p "process.release.name"   # 输出 "node" 才是真 Node.js；bun 壳会输出 "bun" 或报错
+   node -p "process.versions.bun ? 'bun '+process.versions.bun : 'real node '+process.version"
    ```
+
+   输出 `real node ...` 才是真 Node.js。**不要用 `process.release.name` 判断**——bun 出于兼容会谎报为 `node`（本项目实测踩过）。
 
 2. **node 是 bun 壳或不存在时，找 npm 反推真实 node**（fnm/nvm/volta 等版本管理器的 npm 与 node 同目录）：
 
