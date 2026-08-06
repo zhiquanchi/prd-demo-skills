@@ -10,13 +10,21 @@
 
 **先判断操作系统和 shell**：`uname -s`（Linux/macOS）或 `$env:OS`/`echo %OS%`（Windows）。下面命令分 POSIX shell（bash/zsh）和 Windows PowerShell 两种写法。
 
-1. **验证现有 node 是否是真的 Node.js**（`node` 可能是 bun 的 wrapper，例如本机 `/usr/local/bin/node`；这条各平台通用）：
+1. **验证现有 node 是否是真的 Node.js 且版本达标**（`node` 可能是 bun 的 wrapper，例如本机 `/usr/local/bin/node`；这条各平台通用）：
 
    ```bash
    node -p "process.versions.bun ? 'bun '+process.versions.bun : 'real node '+process.version"
    ```
 
    输出 `real node ...` 才是真 Node.js。**不要用 `process.release.name` 判断**——bun 出于兼容会谎报为 `node`（本项目实测踩过）。
+
+   是真 Node.js 还要再查主版本号，本项目工具链（Umi Max 4 / TypeScript 5 / 新版 npm）要求 **Node >= 18**：
+
+   ```bash
+   node -p "const [maj,min]=process.versions.node.split('.').map(Number); (maj>18||(maj===18&&min>=0)) ? 'ok' : 'too old '+process.version"
+   ```
+
+   输出 `too old`（如 Node 12/14/16）时视为不可用，按下面第 3 步装一个达标的，不要用旧版本硬跑——`engines` 声明和工具链实际要求都已不支持。
 
 2. **node 是 bun 壳或不存在时，找 npm 反推真实 node**（fnm/nvm/volta 等版本管理器的 npm 与 node 同目录）：
 
@@ -33,26 +41,41 @@
    - POSIX：`ls ~/.local/share/fnm/node-versions/*/installation/bin/node`、`ls ~/.nvm/versions/node/*/bin/node`
    - Windows：`dir "$env:LOCALAPPDATA\fnm\node-versions\*\installation\node.exe"`、`dir "$env:APPDATA\nvm\*\node.exe"`（nvm-windows）、`dir "$env:ProgramFiles\nodejs\node.exe"`
 
-3. **完全没有 node runtime 时，装一个项目级隔离的**（不污染系统、不需要管理员权限、不依赖版本管理器）。Node 官方提供免安装压缩包，解压即用：
+3. **完全没有 node runtime（或版本不达标）时，装一个项目级隔离的**（不污染系统、不需要管理员权限、不依赖版本管理器）。Node 官方提供免安装压缩包，解压即用。**不要照抄写死的文件名，先探测 OS 和架构再拼装**：
 
    ```bash
-   # POSIX（Linux/macOS）
+   # POSIX（Linux/macOS）：先探测平台和架构，拼出正确的分发文件名
+   VER=v24.18.0
+   case "$(uname -s)" in
+     Linux)  OS=linux;  EXT=tar.xz ;;
+     Darwin) OS=darwin; EXT=tar.gz ;;   # macOS 官方分发是 .tar.gz，不是 .tar.xz
+     *) echo "unsupported: $(uname -s)"; exit 1 ;;
+   esac
+   case "$(uname -m)" in
+     x86_64|amd64) ARCH=x64 ;;
+     arm64|aarch64) ARCH=arm64 ;;
+     *) echo "unsupported arch: $(uname -m)"; exit 1 ;;
+   esac
+   PKG="node-${VER}-${OS}-${ARCH}"
    mkdir -p .runtime
-   curl -fsSL https://nodejs.org/dist/v24.18.0/node-v24.18.0-linux-x64.tar.xz | tar -xJ -C .runtime
-   export PATH="$PWD/.runtime/node-v24.18.0-linux-x64/bin:$PATH"
-   node -v   # v24.18.0
+   curl -fsSL "https://nodejs.org/dist/${VER}/${PKG}.${EXT}" | tar -xJ -C .runtime 2>/dev/null \
+     || curl -fsSL "https://nodejs.org/dist/${VER}/${PKG}.${EXT}" | tar -xz -C .runtime
+   export PATH="$PWD/.runtime/${PKG}/bin:$PATH"
+   node -v   # 应输出 v24.18.0
    ```
    ```powershell
    # Windows PowerShell（官方分发的是 .zip，注意不是 tar）
+   $VER = "v24.18.0"
+   $ARCH = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "x64" }
    New-Item -ItemType Directory -Force .runtime
-   Invoke-WebRequest https://nodejs.org/dist/v24.18.0/node-v24.18.0-win-x64.zip -OutFile .runtime\node.zip
+   Invoke-WebRequest "https://nodejs.org/dist/$VER/node-$VER-win-$ARCH.zip" -OutFile .runtime\node.zip
    Expand-Archive .runtime\node.zip -DestinationPath .runtime
-   $env:Path = "$PWD\.runtime\node-v24.18.0-win-x64;$env:Path"   # Windows 上 node/npm 直接在根目录，没有 bin 子目录
+   $env:Path = "$PWD\.runtime\node-$VER-win-$ARCH;$env:Path"   # Windows 上 node/npm 直接在根目录，没有 bin 子目录
    node -v
    ```
 
    - 文件名按平台和架构选择：Linux `linux-x64`/`linux-arm64`（`.tar.xz`），macOS `darwin-x64`/`darwin-arm64`（`.tar.gz`），Windows `win-x64`/`win-arm64`（`.zip`）。架构用 `uname -m`（POSIX）或 `$env:PROCESSOR_ARCHITECTURE`（Windows）判断
-   - 版本号按 `package.json` 的 `engines` 调整；最新 LTS 版本号可查 https://nodejs.org/dist/index.json
+   - 版本号必须满足 `engines`（Node >= 18，建议用当前 LTS）；最新 LTS 版本号可查 https://nodejs.org/dist/index.json
    - `.runtime/` 在项目内，记得加进 `.gitignore`
    - 系统级安装（apt、winget、`brew`、安装程序等）会改系统环境，**先征得用户同意**再用
 
