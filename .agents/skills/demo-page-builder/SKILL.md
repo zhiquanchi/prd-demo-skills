@@ -1,11 +1,11 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的热更新验证（环境细则见 references/environment.md，起服务与验证见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的热更新验证（环境细则见 references/environment.md，起服务与验证见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，用户确认满意后打 git tag 并生成同名交接文档见 references/handover.md）。
 ---
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分四份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务、热更新、验证见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分五份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务、热更新、验证见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`。
 
 ## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
 
@@ -93,6 +93,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 - **每一个业务改动（页面、小功能、样式调整）完成后**，先通过热更新或重启服务让新 bundle 生效，再把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
 - 用户反馈不满意 → 改 → 再热更新/重启 → 再请用户确认，循环直到用户认可
+- **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，总结本次对话内容），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略
 
 ## 进度上报（强制，防止用户误以为卡死）
 
@@ -120,7 +121,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
   - 用户说「做一个用户管理页，要有搜索、分页和批量删除」→ `feat: 新增用户管理列表页，支持关键字搜索、分页浏览和批量删除`
   - 用户说「把表格改成斑马纹，操作列固定到右侧」→ `style: 用户列表表格增加斑马纹样式，操作列固定到右侧`
   - 用户输入很简短时，结合实现内容补全成完整描述，但不得编造用户没要求的功能
-- **git 操作白名单**：只允许 `git init`、`git add`、`git commit`、`git push`、`git pull`、`git merge` 六个写命令（含状态确认用的 `git status` / `git log` / `git diff` 等只读查询）。其中 `git push` 按上条规则在每个任务提交后直接执行；`git pull` / `git merge` **无冲突或冲突可自动合并时直接自动处理，无需逐次确认**，仅当产生 git 无法自动解决的冲突时，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行
+- **git 操作白名单**：只允许 `git init`、`git add`、`git commit`、`git push`、`git pull`、`git merge`、`git tag` 七个写命令（含状态确认用的 `git status` / `git log` / `git diff` / `git tag -l` 等只读查询）。其中 `git push` 按上条规则在每个任务提交后直接执行；`git tag` 仅在用户确认满意后按 `references/handover.md` 流程使用（含删除后重打的 `git tag -d` / `git push origin :refs/tags/<tag>` 场景）；`git pull` / `git merge` **无冲突或冲突可自动合并时直接自动处理，无需逐次确认**，仅当产生 git 无法自动解决的冲突时，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行
 
 ## 产出要求
 
