@@ -6,15 +6,17 @@ React demo 页面构建的 agent skills，适用于 Umi Max + Ant Design 技术�
 
 ```
 .agents/skills/
-└── demo-page-builder/                # 唯一入口 skill：组件库白名单（antd / Ant Design Pro / Ant Design X）、先搜后用、交付确认
+└── demo-page-builder/                # 唯一入口 skill：项目定位（当前工作目录就地初始化）、组件库白名单（antd / Ant Design Pro / Ant Design X）、先搜后用、交付确认
     ├── SKILL.md
     └── references/                   # additional materials（非独立 skill，由 SKILL.md 引用）
-        ├── dev-server.md             # node 环境探测与安装、依赖安装、dev server 启停、热更新与验证的细则
-        └── package.json              # 已知可用的依赖清单基准
+        ├── environment.md            # node runtime 探测与安装、受阻处理、依赖安装的细则
+        ├── dev-server.md             # dev server 启停、热更新与页面生效验证的细则
+        └── package.json              # 已知可用的依赖清单基准（新项目就地初始化时复制使用）
 ```
 
-- **demo-page-builder**：生成 demo、画页面、生成 HTML 等任务的入口。组件库严格限定 Ant Design / Ant Design Pro / Ant Design X，禁止其他组件库；每个改动必须热更新或重启服务并交给用户确认效果。
-- **references/dev-server.md**：dev server 工作流细则——node runtime 探测（识别 bun 壳）、无 runtime 时项目级免安装部署（Linux/macOS/Windows）、公司环境拦截时停止并上报、`--legacy-peer-deps` 安装、页面生效验证。
+- **demo-page-builder**：生成 demo、画页面、生成 HTML 等任务的入口。**始终以用户会话的当前工作目录为项目根**，当前目录不是 Umi Max 工程时就地初始化（复制 `references/package.json`、生成 `.gitignore`、安装依赖），严禁写入 skill 自身所在的分发仓库。组件库严格限定 Ant Design / Ant Design Pro / Ant Design X，禁止其他组件库；每个改动必须热更新或重启服务并交给用户确认效果。
+- **references/environment.md**：环境准备细则——node runtime 探测（识别 bun 壳）、无 runtime 时项目级免安装部署（Linux/macOS/Windows）、公司环境拦截时停止并上报、`--legacy-peer-deps` 安装。
+- **references/dev-server.md**：起服务与验证细则——dev server 启停、新目录后必须重启、用懒加载 chunk 验证页面真的打进 bundle。
 
 ## 安装方式一：让 agent 自动安装（推荐）
 
@@ -59,4 +61,4 @@ cp -r /tmp/prd-demo-skills/.agents/skills /path/to/your-project/.agents/
 
 ## 使用前提
 
-目标项目应为 Umi Max + React 18 + antd 5 技术栈；缺少 `package.json` 时可用 `references/package.json` 基准清单重建。详细的环境探测、安装受阻处理、热更新与验证规则见 `references/dev-server.md`。
+无需提前准备工程：skill 以会话当前工作目录为项目根，目录为空或缺少 `package.json` 时会用 `references/package.json` 基准清单在当前目录就地初始化 Umi Max + React 18 + antd 5 工程。详细的环境探测、安装受阻处理见 `references/environment.md`，起服务、热更新与验证规则见 `references/dev-server.md`。
