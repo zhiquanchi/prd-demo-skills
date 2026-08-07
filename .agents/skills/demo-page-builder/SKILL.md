@@ -1,11 +1,22 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、每个改动一次 git 提交（git 缺失时经用户同意后安装），以及页面完成后的热更新验证（环境细则见 references/environment.md，起服务与验证见 references/dev-server.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、每个改动一次 git 提交（git 缺失时经用户同意后安装），以及页面完成后的热更新验证（环境细则见 references/environment.md，起服务与验证见 references/dev-server.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md）。
 ---
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分两份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务、热更新、验证见 `references/dev-server.md`。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分三份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务、热更新、验证见 `references/dev-server.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`。
+
+## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
+
+用户提供了参考物（HTML 文件或代码片段、页面截图、设计稿、线上页面 URL 等）并要求"照这个做 / 复刻 / 还原"时，**不要直接进入常规工作流程**，先按 `references/replicate.md` 执行：
+
+1. **先理解原稿**：拆解参考物，产出复刻清单（区块划分、精确配色、字体间距、交互、文案）
+2. **组件映射**：原稿元素全部映射到白名单组件，清单外一律禁止
+3. **一比一复刻**：布局、配色（精确色值）、文案逐字还原，样式用 antd-style
+4. **对比验证**：截图与原稿并排核对，不像就改到用户确认像为止
+
+复刻场景的其余规则（白名单、git 提交、交付确认）与常规任务完全一致。
 
 ## 项目定位（第一优先级，先于一切流程）
 
