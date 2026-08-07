@@ -1,10 +1,63 @@
 # 起服务与页面验证（demo-page-builder 的参考文档）
 
-> 本文件是 `demo-page-builder` skill 的 additional material，不是独立 skill。涉及起 dev server、热更新、验证页面生效时，由 demo-page-builder 的流程引导到这里执行。node runtime 探测/安装、依赖安装等环境准备见同目录 `environment.md`。
+> 本文件是 `demo-page-builder` skill 的 additional material，不是独立 skill。涉及起服务、热更新/构建、验证页面生效时，由 demo-page-builder 的流程引导到这里执行。node runtime 探测/安装、依赖安装等环境准备见同目录 `environment.md`。
 
-适用于**用户会话当前工作目录**下的 Umi Max 4 + antd 5 + React 18 工程。执行本文件前，先按 `environment.md` 确保 node runtime 和依赖就绪。所有命令（`npm run dev` 等）都在当前工作目录下执行，绝不在 skill 自身所在目录里起服务。
+适用于**用户会话当前工作目录**下的 Umi Max 4 + antd 5 + React 18 工程。执行本文件前，先按 `environment.md` 确保 node runtime 和依赖就绪。所有命令都在当前工作目录下执行，绝不在 skill 自身所在目录里起服务。
 
-## 启动 dev server
+## 第一步：判断环境，选择服务模式
+
+```bash
+grep -qi microsoft /proc/version || [ -n "$WSL_DISTRO_NAME" ]
+```
+
+- **命中（WSL）→ 模式 A：生产构建 + 静态服务**（见下节）。原因：WSL 的 localhost 转发层会断开浏览器到 dev server 的 HMR WebSocket（服务器端日志确认这期间没有任何重启或编译），webpack 客户端断线重连后强制整页刷新，用户在页面上的状态（输入内容、选中项、弹窗等）被清空。这是 WSL + dev server 的固有问题，不是代码问题，配置层面无法根除。
+- **未命中（macOS、Windows 原生、普通 Linux）→ 模式 B：dev server 热更新**（见后文）。
+
+## 模式 A（WSL）：生产构建 + 静态服务
+
+纯 HTTP、无 WebSocket，页面长时间放着也不会自己刷新。
+
+### 启动静态服务
+
+项目里没有 `scripts/serve-dist.js` 时先创建（express 在依赖白名单内，无需新装包）：
+
+```js
+// scripts/serve-dist.js：express 静态服务 + 前端路由 fallback
+const express = require('express');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 8000;
+const distDir = path.join(__dirname, '..', 'dist');
+
+app.use(express.static(distDir));
+// SPA fallback：前端路由一律回退到 index.html
+app.get('*', (req, res) => res.sendFile(path.join(distDir, 'index.html')));
+
+app.listen(PORT, () => console.log(`Serving dist at http://localhost:${PORT}`));
+```
+
+```bash
+node scripts/serve-dist.js   # 后台运行，disable_timeout
+```
+
+- 服务一旦启动就**不需要再重启**——它只读 `dist/` 目录，重新构建后新产物自动生效。
+- 注意通配写法是 express 4 的语法；白名单锁的是 `express@^4.21.2`，不要用 express 5 的写法。
+
+### 核心规则：每次代码改动后必须重新构建
+
+1. 改完代码执行 `npm run build`（max build），等构建完成。
+2. 把地址发给用户，请用户强刷（Ctrl+Shift+R）确认效果。
+3. 服务不用重启，没有热更新，也不需要 tail 日志等 Compiled。构建较慢时按 SKILL.md 的进度上报规则间断报进度。
+4. 构建后页面没变化：先确认构建确实完成、用户已强刷，再做其他排查，不做无效排查。
+
+### 验证页面真的生效（模式 A）
+
+- 构建产物验证：页面代码在 `dist/` 的懒加载 chunk 里（页面 `src/pages/foo.tsx` 对应 `dist/src__pages__foo.async.js` 之类），用 `grep -r "页面里的特征字符串" dist/` 确认真的打进了产物。
+- 路由可达性：`curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/<路由>`，SPA 路由经 fallback 应返回 200。
+- 从 dev 模式切换到静态模式后，用户浏览器必须强刷一次（Ctrl+Shift+R）清掉旧的 dev bundle，否则可能还连着已失效的旧服务。
+
+## 模式 B（非 WSL）：dev server 热更新
 
 ```bash
 npm run dev   # max dev，后台运行，disable_timeout
@@ -13,20 +66,19 @@ npm run dev   # max dev，后台运行，disable_timeout
 - 端口不固定：Umi Max 默认尝试 8000，被占用会自动换端口；**实际地址（Local / Network）一律以 dev server 启动日志的实际输出为准**，不要假设是 8000。
 - 看到 `App listening at` 且 Webpack `Compiled` 即为就绪。
 
-## 核心规则：每个页面/小功能完成后必须热更新或重启
+### 核心规则：每个页面/小功能完成后必须热更新或重启
 
 1. 写完一个页面或小功能后，先等热更新：tail dev server 日志，确认出现新的 `wait - [Webpack] Compiling...` → `event - [Webpack] Compiled`。
-2. **新建了 `src/pages` 等目录或首批文件时，watcher 经常监听不到新目录**（本项目已踩过：touch 文件也不触发重编译）。此时必须重启 dev server：
-   - 停掉后台任务（TaskStop），重新 `npm run dev`。
+2. **新建了 `src/pages` 等目录或首批文件时，watcher 经常监听不到新目录**（本项目已踩过：touch 文件也不触发重编译）。此时必须重启 dev server：停掉后台任务（TaskStop），重新 `npm run dev`。
 3. 改已有文件一般能热更新；新增路由/新目录后如果页面没变化，不要排查代码，先重启。
 
-## 验证页面真的生效（不要只靠肉眼）
+### 验证页面真的生效（模式 B）
 
 - 路由是否生成：`cat src/.umi/core/route.tsx`，确认有对应 path 和 `routeComponents`。
 - 页面代码在**懒加载 chunk** 里，不在 `/umi.js`：页面 `src/pages/foo.tsx` 对应 `http://localhost:<实际端口>/src__pages__foo.async.js`（端口取启动日志里的实际值），用 `curl -s ... | grep "页面里的特征字符串"` 验证。
-- 首页路径 `/` 返回 200 只说明服务活着，不说明页面有内容。
 - 用户浏览器端如果仍空白：强刷（Ctrl+Shift+R）清旧 bundle。
 
-## 已知现象
+## 已知现象（两种模式通用）
 
+- 首页路径 `/` 返回 200 只说明服务活着，不说明页面有内容。
 - 没有任何 `src/pages` 时，根路径是空白页（返回的 HTML 只有空的 `<div id="root">`），这是正常的。

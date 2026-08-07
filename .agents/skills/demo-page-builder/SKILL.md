@@ -1,11 +1,11 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的热更新验证（环境细则见 references/environment.md，起服务与验证见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，用户确认满意后打 git tag 并生成同名交接文档见 references/handover.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，用户确认满意后打 git tag 并生成同名交接文档见 references/handover.md）。
 ---
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分五份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务、热更新、验证见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分五份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`。
 
 ## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
 
@@ -76,23 +76,23 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
    - 禁止凭记忆硬写不熟悉的组件 API；查到再写
 2. **选型**：按上表定位到组件库 → 定位到具体组件 → 确认当前项目装的大版本（antd 是 v5，ProComponents v2，X v2）与该版本文档一致
 3. **实现**：页面写到 `src/pages/`（Umi 约定式路由），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖；首页空白跳转、新增页面的导航绑定按 `references/routes.md` 执行
-4. **生效与验证**：按参考文档 `references/dev-server.md` 执行，并用懒加载 chunk 验证页面真的打进 bundle——不许"写完就报完成"
+4. **生效与验证**：按参考文档 `references/dev-server.md` 执行（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新），并用懒加载 chunk 验证页面真的打进产物——不许"写完就报完成"
 5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。仅当使用 X 组件且**运行时报错**时，才按 `references/environment.md` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策——这是阻塞项，拿到用户决定前不要绕过；未报错则正常使用，不必提前处理
 
 ## 交付与确认（强制）
 
-本节区分两件事：**服务管理**是环境操作（起服务、热更新、重启），本身不是交付物；**业务改动**（页面、功能、样式）才是交付物，必须经用户确认。
+本节区分两件事：**服务管理**是环境操作（起服务、热更新/重启、重新构建），本身不是交付物；**业务改动**（页面、功能、样式）才是交付物，必须经用户确认。
 
 ### 服务管理（环境操作，不算交付）
 
-- **服务保持可用**：按 `references/dev-server.md` 启动 dev server（没在跑就启动，已在跑就复用），保证地址（默认 http://localhost:8000/<路由>）始终可访问
-- 起服务、热更新、重启只是让改动生效的手段，**不单独向用户邀功、不单独提交 git**；只有业务改动才走下面的交付与提交流程
-- 新建目录/新路由后页面没变化：按 skill 规则先重启 server，不做无效排查；重启一次后仍无变化再回头排查代码
+- **服务保持可用**：按 `references/dev-server.md` 判断环境并以对应模式启动服务（没在跑就启动，已在跑就复用），保证地址（默认 http://localhost:8000/<路由>）始终可访问
+- 起服务、热更新/重启、重新构建只是让改动生效的手段，**不单独向用户邀功、不单独提交 git**；只有业务改动才走下面的交付与提交流程
+- 页面没变化时按所选模式处理：dev 模式新建目录/新路由后先重启 server；WSL 静态模式先确认构建完成、用户已强刷。以上做过仍无变化再回头排查代码，不做无效排查
 
 ### 业务改动（交付物，需用户确认）
 
-- **每一个业务改动（页面、小功能、样式调整）完成后**，先通过热更新或重启服务让新 bundle 生效，再把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
-- 用户反馈不满意 → 改 → 再热更新/重启 → 再请用户确认，循环直到用户认可
+- **每一个业务改动（页面、小功能、样式调整）完成后**，先让新改动生效（dev 模式等热更新或重启，WSL 静态模式重新 `npm run build`），再把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
+- 用户反馈不满意 → 改 → 再生效 → 再请用户确认，循环直到用户认可
 - **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，总结本次对话内容），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略
 
 ## 进度上报（强制，防止用户误以为卡死）
