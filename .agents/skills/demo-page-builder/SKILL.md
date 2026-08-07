@@ -1,6 +1,6 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、每个改动一次 git 提交（git 缺失时经用户同意后安装），以及页面完成后的热更新验证（环境细则见 references/environment.md，起服务与验证见 references/dev-server.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的热更新验证（环境细则见 references/environment.md，起服务与验证见 references/dev-server.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md）。
 ---
 
 # Demo 页面构建总控
@@ -94,6 +94,17 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **每一个业务改动（页面、小功能、样式调整）完成后**，先通过热更新或重启服务让新 bundle 生效，再把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
 - 用户反馈不满意 → 改 → 再热更新/重启 → 再请用户确认，循环直到用户认可
 
+## 进度上报（强制，防止用户误以为卡死）
+
+长耗时环节必须持续向用户输出进度，**不允许长时间静默执行**：
+
+- **每个阶段开始时先报一行**：说明当前在做什么、预计耗时，例如「正在安装依赖（约 1-2 分钟）…」「正在启动 dev server…」「正在分析原稿并生成复刻清单…」
+- **阶段之间必须有过渡提示**：进入下一阶段前用一句话交代上一阶段结果和下一步动作，例如「依赖安装完成，开始写页面代码」
+- **长等待中要间断性报进度**：`npm install`、dev server 首次编译、大文件写入等超过约 30 秒的操作，等待期间穿插进度说明（已完成的子步骤、当前在等的具体事项），不要一次性闷头跑完
+- **复刻/多页面等大任务**：按复刻清单或页面清单逐项报进度（「第 2/5 个区块：导航栏已完成」），让用户能看到推进
+- **卡顿时如实说**：某步超过预期仍未完成，直接说明「XX 比平时慢，仍在进行 / 可能受阻，正在排查」，而不是沉默
+- **不要刷屏**：进度一行一条、只在阶段切换或长等待时输出，不逐条播报每个工具调用；同一阶段内没有实质进展不重复报
+
 ## Git 提交（强制）
 
 - **git 不存在先安装**：开始工作前执行 `command -v git`（Windows cmd/PowerShell 用 `where git`）检查；不存在时，**先征得用户同意再安装**（与 `references/environment.md` 的"系统级安装需用户同意"规则一致），用户同意后按对应平台安装：
@@ -103,13 +114,13 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
   - macOS：`brew install git`
   - Windows：优先 `winget install --id Git.Git -e --source winget`；没有 winget 时用 `choco install git -y`；两者都没有则从 https://git-scm.com/download/win 下载安装包静默安装。Windows 上装完后新开 shell 或把 `C:\Program Files\Git\cmd` 加入 PATH 再验证 `git --version`
 - **不是 git 仓库先初始化**：项目根目录下没有 `.git` 时执行 `git init`；提交前检查 `user.name`，未配置时只需向用户索取名字并执行 `git config user.name "<名字>"`，`user.email` 不需要用户提供，自动生成一个占位邮箱即可，如 `git config user.email "<名字>@demo.local"`（未配置会导致提交失败）
-- **每完成一个任务或一个改动就提交一次**：一个页面、一个小功能、一次样式调整，各自对应一次 `git add -A && git commit`，不要把多个改动攒成一个提交
+- **每完成一个任务或一个改动就提交一次并推送**：一个页面、一个小功能、一次样式调整，各自对应一次 `git add -A && git commit && git push`，不要把多个改动攒成一个提交。**push 已获用户长期授权：每个任务完成后直接推送到远端，无需逐次再确认**；push 失败（如远端有新提交）时如实报告，不擅自用禁止命令强行处理
 - **提交信息用中文**：遵循 `类型: 简述` 格式，类型从 `feat`（新页面/新功能）、`fix`（修复）、`style`（样式调整）、`chore`（依赖/配置）中选
 - **简述必须是详细的功能描述，且从用户的原始输入中提取**：把用户这次要求的具体功能点写清楚——做了什么页面/功能、包含哪些关键要素（核心组件、交互、数据来源等），让不看代码的人仅凭提交信息就能知道这次改了什么。禁止 `feat: 新增页面`、`fix: 修改问题` 这类空泛描述
   - 用户说「做一个用户管理页，要有搜索、分页和批量删除」→ `feat: 新增用户管理列表页，支持关键字搜索、分页浏览和批量删除`
   - 用户说「把表格改成斑马纹，操作列固定到右侧」→ `style: 用户列表表格增加斑马纹样式，操作列固定到右侧`
   - 用户输入很简短时，结合实现内容补全成完整描述，但不得编造用户没要求的功能
-- **git 操作白名单**：只允许 `git init`、`git add`、`git commit` 三个写命令（含状态确认用的 `git status` / `git log` / `git diff` 等只读查询）。`git push`、`git pull`、`git merge` 涉及远端或分支合并，**必须逐次征得用户明确同意后**才能执行；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行；`pull`/`merge` 若产生冲突，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决
+- **git 操作白名单**：只允许 `git init`、`git add`、`git commit`、`git push` 四个写命令（含状态确认用的 `git status` / `git log` / `git diff` 等只读查询），其中 `git push` 按上条规则在每个任务提交后直接执行。`git pull`、`git merge` 涉及远端同步或分支合并，**必须逐次征得用户明确同意后**才能执行；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行；`pull`/`merge` 若产生冲突，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决
 
 ## 产出要求
 
