@@ -7,6 +7,17 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分两份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务、热更新、验证见 `references/dev-server.md`。
 
+## 项目定位（第一优先级，先于一切流程）
+
+- **项目根 = 用户会话的当前工作目录**（pwd）。所有文件写入、依赖安装、dev server、git 操作都只在当前工作目录下进行。
+- **严禁把 skill 自身所在目录当作项目根**：本 skill 可能安装在 `~/.agents/skills/` 或某个分发仓库（如 `prd-demo-skills`）里，那些位置不是用户的项目。绝不向 skill 目录写页面、装依赖、起服务或提交 git。
+- **当前目录不是前端工程时先就地初始化**：当前目录没有 `package.json`（或不是 Umi Max 工程）时，在当前目录原地初始化，而不是换到别的目录：
+  1. 复制 `references/package.json` 为当前目录的 `package.json`，把 `name` 改成当前目录名
+  2. 写 `.gitignore`：`node_modules/`、`.runtime/`、`src/.umi/`、`src/.umi-production/`、`dist/`——**绝不要忽略 `src/pages`**，页面文件必须能被 git 提交
+  3. 按 `references/environment.md` 探测 node 后执行 `npm install --legacy-peer-deps --no-audit --no-fund`
+  4. Umi Max 约定式路由零配置即可跑，不需要额外配置文件
+- 用户明确指定了其他目录时，以用户指定为准。
+
 ## 组件库白名单（严格限制，禁止引入其他组件库）
 
 **依赖总闸**：所有可用的库以 `references/package.json` 的依赖清单为准——只允许 import 清单里已有的包，**禁止安装任何新依赖**（`npm install <pkg>` 一律不行）。清单里没有的能力，用清单内已有的库实现，或如实告诉用户做不了，不擅自引入。

@@ -2,7 +2,7 @@
 
 > 本文件是 `demo-page-builder` skill 的 additional material，不是独立 skill。涉及起 dev server、热更新、验证页面生效时，由 demo-page-builder 的流程引导到这里执行。node runtime 探测/安装、依赖安装等环境准备见同目录 `environment.md`。
 
-适用于 `/root/prd-demo-react`（Umi Max 4 + antd 5 + React 18）。执行本文件前，先按 `environment.md` 确保 node runtime 和依赖就绪。
+适用于**用户会话当前工作目录**下的 Umi Max 4 + antd 5 + React 18 工程。执行本文件前，先按 `environment.md` 确保 node runtime 和依赖就绪。所有命令（`npm run dev` 等）都在当前工作目录下执行，绝不在 skill 自身所在目录里起服务。
 
 ## 启动 dev server
 

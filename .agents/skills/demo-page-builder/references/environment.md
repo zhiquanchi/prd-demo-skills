@@ -2,7 +2,7 @@
 
 > 本文件是 `demo-page-builder` skill 的 additional material，不是独立 skill。涉及 node runtime 探测/安装、受阻处理、依赖安装时，由 demo-page-builder 的流程引导到这里执行。起服务、热更新、页面验证见同目录 `dev-server.md`。
 
-适用于 `/root/prd-demo-react`（Umi Max 4 + antd 5 + React 18）。
+适用于**用户会话当前工作目录**下的 Umi Max 4 + antd 5 + React 18 工程；当前目录还不是该工程时，先按 SKILL.md 的「项目定位」节在当前目录就地初始化，再执行本文档。**严禁**把 skill 自身所在目录当作项目根来安装依赖。
 
 ## 环境：先探测 node runtime，没有再装一个项目级隔离的
 
