@@ -10,7 +10,7 @@
 npm run dev   # max dev，后台运行，disable_timeout
 ```
 
-- 默认地址：Local `http://localhost:8000`；Network 地址以 dev server 启动日志的实际输出为准（不同机器 IP 不同）。
+- 端口不固定：Umi Max 默认尝试 8000，被占用会自动换端口；**实际地址（Local / Network）一律以 dev server 启动日志的实际输出为准**，不要假设是 8000。
 - 看到 `App listening at` 且 Webpack `Compiled` 即为就绪。
 
 ## 核心规则：每个页面/小功能完成后必须热更新或重启
@@ -23,7 +23,7 @@ npm run dev   # max dev，后台运行，disable_timeout
 ## 验证页面真的生效（不要只靠肉眼）
 
 - 路由是否生成：`cat src/.umi/core/route.tsx`，确认有对应 path 和 `routeComponents`。
-- 页面代码在**懒加载 chunk** 里，不在 `/umi.js`：页面 `src/pages/foo.tsx` 对应 `http://localhost:8000/src__pages__foo.async.js`，用 `curl -s ... | grep "页面里的特征字符串"` 验证。
+- 页面代码在**懒加载 chunk** 里，不在 `/umi.js`：页面 `src/pages/foo.tsx` 对应 `http://localhost:<实际端口>/src__pages__foo.async.js`（端口取启动日志里的实际值），用 `curl -s ... | grep "页面里的特征字符串"` 验证。
 - 首页路径 `/` 返回 200 只说明服务活着，不说明页面有内容。
 - 用户浏览器端如果仍空白：强刷（Ctrl+Shift+R）清旧 bundle。
 
