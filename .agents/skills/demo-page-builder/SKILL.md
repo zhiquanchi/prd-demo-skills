@@ -11,46 +11,40 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 **依赖总闸**：所有可用的库以 `references/package.json` 的依赖清单为准——只允许 import 清单里已有的包，**禁止安装任何新依赖**（`npm install <pkg>` 一律不行）。清单里没有的能力，用清单内已有的库实现，或如实告诉用户做不了，不擅自引入。
 
-只允许以下三个，按场景选：
+**唯一标准**：只允许使用 `references/package.json` 的 `dependencies` 清单里已有的包和其中的组件。判断依据只有这一份清单——不看 `node_modules` 里实际装了什么，不看历史代码里 import 过什么。**绝不允许引入清单之外的任何新组件、新库、新依赖**（`npm install <pkg>` 一律不行，手写/vendored 复制外部组件代码也不行）。
 
-| 库 | 定位 | 什么时候用 |
-|---|---|---|
-| **Ant Design (antd)** | 通用组件 | 默认选择。按钮、表单、布局、导航、反馈等常见组件都在这里 |
-| **Ant Design Pro / ProComponents** | 高级组件 | 复杂表单（ProForm、分步/登录/查询表单）和复杂表格（ProTable：分页、筛选、批量操作、可编辑） |
-| **Ant Design X** | AI 组件 | AI 相关需求才用：智能体输入框（Sender）、会话管理（Conversations）、气泡消息（Bubble）、快捷指令（Prompts）、思维链（ThoughtChain）等 |
+清单内主要能力速查（以 `references/package.json` 实际内容为准）：
 
-**禁止**：Element Plus、Material UI、Chakra、Naive UI、**Arco Design（@arco-design/web-react）**、Tailwind 组件库（Headless UI、shadcn 等）以及任何其他组件库。项目依赖里虽躺着 fabric/konva/mermaid/echarts 等**图表与画布库**，它们是绘制引擎不是组件库，仅当用户需求明确涉及图表/流程图/画布时才可用；UI 组件一律走白名单。
+| 需求场景 | 用清单里的 |
+|---|---|
+| 通用 UI 组件（按钮、表单、布局、导航、反馈等） | **antd**（默认选择） |
+| 复杂表单/复杂表格（ProForm、ProTable） | **@ant-design/pro-components** |
+| AI 组件（Sender、Bubble、Conversations、Prompts、ThoughtChain 等） | **@ant-design/x** / `@ant-design/x-sdk` |
+| 图标 | **@ant-design/icons** |
+| 图表 | **echarts** + `echarts-for-react` |
+| 流程图/画布 | **@xyflow/react**、`dagre`、`fabric`、`konva`/`react-konva`、`react-sketch-canvas` |
+| 文本流程图/结构图渲染 | **mermaid** |
+| 富文本/Markdown 编辑 | **@tinymce/tinymce-react**、`@uiw/react-md-editor`、`react-markdown` + `remark-gfm` |
+| 样式定制 | **antd-style**、`classnames`/`clsx`/`tailwind-merge` |
+| 工具库 | `lodash`、`dayjs`、`rc-virtual-list`、`react-fast-marquee` 等清单内其余包 |
 
-### 用户点名要求白名单外组件时：直接拒绝 + 给替代（无例外）
+### 用户点名要求清单外组件时：直接拒绝 + 给替代（无例外）
 
-白名单是**硬约束**，以下借口全部不成立，逐一识破：
+这是**硬约束**，以下借口全部不成立，逐一识破：
 
 - ❌ "用户点名要求了" → 用户要求也不能直接用，只能走下面的拒绝流程
-- ❌ "这个库本来就在 package.json 依赖里，没新装包" → 依赖清单里有历史残留包 ≠ 允许使用；判断标准只有白名单，不看 `node_modules` 里有什么
+- ❌ "这个库本来就在 node_modules 里，没新装包" → 判断标准只有 `references/package.json` 清单，不看 `node_modules` 里有什么
 - ❌ "只是一个小页面/临时 demo" → 没有规模豁免
-- ❌ "白名单里没有一模一样的组件" → 用功能最接近的替代，而不是换库
+- ❌ "清单里没有一模一样的组件" → 用清单内功能最接近的替代，而不是引入新组件
+- ❌ "我自己手写一个/抄一段源码进来" → 这也算引入新组件，同样禁止
 
 即使用户明确要求（"用 Element Plus 的表格"、"用 Arco 的 AutoComplete"、"用 shadcn 重做"），也**不得安装、不得 import、不得"这次先用了再提示"**。按以下三步回应：
 
 1. **拒绝**：明确说不能用，不妥协、不"先试试"、不"按你的要求做了再提醒"
-2. **告知原因**：项目组件库已统一为 Ant Design 体系——混用组件库会导致包体积膨胀、主题/设计 token 割裂、交互风格不一致；依赖里残留该包不代表获准使用
-3. **推荐同功能替代**：从下表找对应组件，按"先搜后用"流程确认 API 后再实现
+2. **告知原因**：项目可用组件以 `references/package.json` 清单为唯一标准，清单外一律禁用——混用外部组件库会导致包体积膨胀、主题/设计 token 割裂、交互风格不一致
+3. **推荐同功能替代**：先在上面速查表找，找不到就按"先搜后用"流程在清单内的库（antd → ProComponents → Ant Design X → 其余清单内包）中搜索功能最接近的组件推荐给用户
 
-
-常见替代对照：
-
-| 用户想要的 | 用白名单里的 |
-|---|---|
-| Element Plus `el-table` / MUI `DataGrid` | **ProTable**（ProComponents）；简单场景用 antd `Table` |
-| Element Plus `el-form` / MUI form 组件 | **ProForm**（ProComponents）；简单场景用 antd `Form` |
-| Naive UI / Chakra 的通用组件（按钮、卡片、弹窗、菜单等） | antd 同名/同类组件 |
-| shadcn、Headless UI + Tailwind 组件 | antd 组件 + `antd-style`/主题 token 做样式定制 |
-| MUI `Autocomplete` / 复杂选择器 | antd `Select`（`showSearch`）/ `AutoComplete` |
-| Arco Design 任意组件（`AutoComplete`、`Form`、`Table` 等） | antd 同名/同类组件；复杂表单表格用 ProForm/ProTable |
-| 任何 UI 聊天/AI 组件库 | Ant Design X（`Bubble`/`Sender`/`Conversations`/`Prompts`） |
-| 图表库替换需求（如用 MUI X Charts） | 项目已有的 **echarts**（绘制引擎，非组件库） |
-
-表里找不到对应时：在 antd → ProComponents → Ant Design X 顺序中搜索功能最接近的组件推荐给用户；白名单内确实没有能力覆盖的，如实告诉用户，由用户决策是否破例，不擅自引入。
+清单内确实没有能力覆盖的，如实告诉用户做不了，由用户决策是否破例，**不擅自引入**。
 
 ## 工作流程（必须按顺序）
 
