@@ -10,7 +10,7 @@ React demo 页面构建的 agent skills，适用于 Umi Max + Ant Design 技术�
     ├── SKILL.md
     └── references/                   # additional materials（非独立 skill，由 SKILL.md 引用）
         ├── environment.md            # node runtime 探测与安装、受阻处理、依赖安装的细则
-        ├── dev-server.md             # 起服务与页面生效验证的细则（WSL：生产构建+静态服务；其他环境：dev server 热更新）
+        ├── dev-server.md             # 起服务与页面生效验证的细则（启动前检查 8000 端口被本任务旧进程占用则 kill 复用；WSL：生产构建+静态服务；其他环境：dev server 热更新）
         ├── routes.md                 # 路由与导航细则：首页空白自动跳转第一个有内容页面、新增页面必须绑定左侧导航入口
         ├── replicate.md              # 参考原型复刻细则：用户提供 HTML/截图/原型时，先理解原稿再用当前技术栈一比一复刻
         ├── common-components.md      # 公共组件细则：侧边栏等跨页面布局组件必须提取为公共组件复用，样式不改、使用项目原有样式
@@ -20,7 +20,7 @@ React demo 页面构建的 agent skills，适用于 Umi Max + Ant Design 技术�
 
 - **demo-page-builder**：生成 demo、画页面、生成 HTML 等任务的入口。**始终以用户会话的当前工作目录为项目根**，当前目录不是 Umi Max 工程时就地初始化（复制 `references/package.json`、生成 `.gitignore`、安装依赖），严禁写入 skill 自身所在的分发仓库。组件库严格限定 Ant Design / Ant Design Pro / Ant Design X，禁止其他组件库；长耗时环节必须定时上报任务进度，防止用户误以为卡死；每个改动必须生效（非 WSL 热更新/重启服务、WSL 重新构建）并交给用户确认效果；用户确认满意后打中文语义 git tag 并生成同名交接文档，作为交付收尾。
 - **references/environment.md**：环境准备细则——node runtime 探测（识别 bun 壳）、无 runtime 时项目级免安装部署（Linux/macOS/Windows）、公司环境拦截时停止并上报、`--legacy-peer-deps` 安装。
-- **references/dev-server.md**：起服务与验证细则——先判断环境：WSL 用生产构建 + express 静态服务（规避 WSL 转发层断开 HMR WebSocket 导致的整页刷新），其他环境用 dev server 热更新（新目录后必须重启）；用懒加载 chunk 验证页面真的打进产物。
+- **references/dev-server.md**：起服务与验证细则——启动前先查 8000 端口：被本任务旧进程占用则 kill 复用原端口，被无关进程占用则换端口；再判断环境：WSL 用生产构建 + express 静态服务（规避 WSL 转发层断开 HMR WebSocket 导致的整页刷新），其他环境用 dev server 热更新（新目录后必须重启）；用懒加载 chunk 验证页面真的打进产物。
 - **references/routes.md**：路由与页面导航细则——Umi 约定式路由速查；首页 `/` 不允许空白，自动跳转第一个有内容的页面；新增页面必须分析并绑定左侧导航入口（已有菜单项必绑跳转、缺入口则补菜单项），菜单选中态跟随路由。
 - **references/replicate.md**：参考原型复刻细则——用户提供 HTML 文件/代码片段、截图、设计稿、线上 URL 等参考物时，先拆解原稿产出复刻清单（区块、精确配色、字体间距、交互、文案），再将原稿元素映射到白名单组件，用当前技术栈一比一复刻，最后截图与原稿对比验证还原度。
 - **references/common-components.md**：公共组件规则——侧边栏等跨页面布局组件必须提取到 `src/components/` 统一引用，禁止逐页复制；样式以项目现有实现为唯一来源，不改样式、不做覆盖；新增页面只允许加菜单项、绑跳转这类结构性变更。

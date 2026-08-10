@@ -5,7 +5,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分五份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分五份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`。
 
 ## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
 
