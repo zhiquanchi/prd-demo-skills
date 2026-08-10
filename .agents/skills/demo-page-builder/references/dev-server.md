@@ -9,10 +9,18 @@
 起服务前先查 8000 端口是否被占用、被谁占用：
 
 ```bash
+# macOS / Linux / WSL
 lsof -nP -iTCP:8000 -sTCP:LISTEN
 ```
 
-- **被本任务的旧进程占用**（命令行含 `max dev` / `umi` / `serve-dist.js`，或进一步用 `lsof -p <PID> | grep cwd` 确认进程工作目录就是当前项目）→ 直接 `kill <PID>` 停掉旧进程，继续使用 8000 端口起服务，保证用户手里的访问地址不变。
+```powershell
+# Windows（PowerShell）：找到占用 8000 的 PID
+netstat -ano | findstr :8000 | findstr LISTENING
+# 查看该 PID 的命令行，判断是不是本任务的进程
+Get-CimInstance Win32_Process -Filter "ProcessId=<PID>" | Select-Object ProcessId, CommandLine
+```
+
+- **被本任务的旧进程占用**（命令行含 `max dev` / `umi` / `serve-dist.js`，或进一步确认进程工作目录就是当前项目：macOS/Linux/WSL 用 `lsof -p <PID> | grep cwd`，Windows 看上一步输出的 `CommandLine` 里的项目路径）→ 直接停掉旧进程（macOS/Linux/WSL：`kill <PID>`；Windows：`taskkill /PID <PID> /F`），继续使用 8000 端口起服务，保证用户手里的访问地址不变。
 - **被与本项目无关的进程占用** → **不要 kill**，按各模式规则换端口（模式 B 由 dev server 自动换；模式 A 用 `PORT=<其他端口>` 启动），并把新地址发给用户。
 - **未被占用** → 直接用 8000。
 
