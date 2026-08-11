@@ -103,13 +103,19 @@
 
 ## 安装依赖
 
-与本文件同级的 `package.json`（`references/package.json`）是本项目**已知可用的依赖清单基准**：项目 `package.json` 丢失、被改坏、或需要在新目录快速重建环境时，直接复制它再安装。
+与本文件同级的 `package.json`（`references/package.json`）是本项目**已知可用的依赖清单基准**：项目 `package.json` 丢失、被改坏、或需要在新目录快速重建环境时，直接复制它再安装。同级的 `package-lock.json`（`references/package-lock.json`）是配套的锁文件，一并复制后用 `npm ci` 安装，版本完全锁定且更快：
+
+```bash
+npm ci --legacy-peer-deps --no-audit --no-fund
+```
+
+仅当 lock 文件缺失或与 `package.json` 不同步时，才退回：
 
 ```bash
 npm install --legacy-peer-deps --no-audit --no-fund
 ```
 
-- 必须加 `--legacy-peer-deps`：`@ant-design/x` 整个 v2 系列 peer 要求 antd ^6，但本项目钉在 antd ^5.25.0，严格模式必报 ERESOLVE。根治方案（二选一，需用户确认）：antd 升 6，或 `@ant-design/x` 降 1.x。
+- 必须加 `--legacy-peer-deps`（`npm ci` 同样要加）：`@ant-design/x` 整个 v2 系列 peer 要求 antd ^6，但本项目钉在 antd ^5.25.0，严格模式必报 ERESOLVE。根治方案（二选一，需用户确认）：antd 升 6，或 `@ant-design/x` 降 1.x。
 - 清单里的 `tailwindcss`/`tailwind-merge`、`tinymce`、`@xyflow/react`、`socket.io-client` 等是历史残留或特定场景工具包，**不代表获准作为 UI 组件库使用**——UI 组件仍只走 SKILL.md 的白名单（antd / ProComponents / Ant Design X）；fabric/konva/mermaid/echarts 等绘制引擎仅在需求明确涉及图表/画布时可用。
 - 若报 `ETXTBSY`（esbuild postinstall，WSL 常见）：直接重跑一次 `npm install` 即可，已下载的包会复用。
 - npm 11 会拦截 postinstall 脚本（allow-scripts 警告）。只要 `node_modules/@esbuild/linux-x64/bin/esbuild --version` 能输出版本号，就不影响运行，无需处理。
