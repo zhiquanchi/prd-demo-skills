@@ -5,7 +5,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分五份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分五份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`。
 
 ## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
 
@@ -93,7 +93,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 - **每一个业务改动（页面、小功能、样式调整）完成后**，先让新改动生效（dev 模式等热更新或重启，WSL 静态模式重新 `npm run build`），再把地址发给用户确认效果；没经过用户在浏览器里确认前，不把任务标记为完成
 - 用户反馈不满意 → 改 → 再生效 → 再请用户确认，循环直到用户认可
-- **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，总结本次对话内容），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略
+- **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，描述产品经理希望用户如何使用这个页面、在网页上可以做什么，对话过程摘要放最后），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略
 
 ## 进度上报（强制，防止用户误以为卡死）
 
