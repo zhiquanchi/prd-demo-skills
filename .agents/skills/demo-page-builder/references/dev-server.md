@@ -26,7 +26,7 @@ Get-CimInstance Win32_Process -Filter "ProcessId=<PID>" | Select-Object ProcessI
 
 ## 第一步：判断环境，选择服务模式
 
-运行本 skill 的环境探测脚本，看输出里的 `environment=`（初始化阶段一般已跑过；POSIX 用 `scripts/check-environment.sh`，Windows 在 PowerShell / cmd 里分别用 `scripts/check-environment.ps1` / `scripts/check-environment.bat`）：`wsl` → 模式 A，`native` → 模式 B。等价于手动执行：
+运行本 skill 的环境探测脚本，看输出里的 `environment=`（初始化阶段一般已跑过；POSIX 用 `scripts/posix/check-environment.sh`，Windows 在 PowerShell / cmd 里分别用 `scripts/windows/check-environment.ps1` / `scripts/windows/check-environment.bat`）：`wsl` → 模式 A，`native` → 模式 B。等价于手动执行：
 
 ```bash
 grep -qi microsoft /proc/version || [ -n "$WSL_DISTRO_NAME" ]
@@ -41,7 +41,7 @@ grep -qi microsoft /proc/version || [ -n "$WSL_DISTRO_NAME" ]
 
 ### 启动静态服务
 
-项目内的 `scripts/serve-dist.js`（express 静态服务 + SPA 路由 fallback）在初始化时已由 `scripts/init-project.sh` 从 `assets/project-template/scripts/serve-dist.js` 复制到位（express 在依赖白名单内，无需新装包）；老项目缺失时把该模板文件复制到项目 `scripts/` 下即可，不要手抄，也不要改成 express 5 的通配写法（白名单锁的是 `express@^4.21.2`，express 4 语法）。
+项目内的 `scripts/serve-dist.js`（express 静态服务 + SPA 路由 fallback）在初始化时已由 `scripts/posix/init-project.sh` 从 `assets/project-template/scripts/serve-dist.js` 复制到位（express 在依赖白名单内，无需新装包）；老项目缺失时把该模板文件复制到项目 `scripts/` 下即可，不要手抄，也不要改成 express 5 的通配写法（白名单锁的是 `express@^4.21.2`，express 4 语法）。
 
 ```bash
 node scripts/serve-dist.js   # 后台运行，disable_timeout
@@ -58,10 +58,10 @@ node scripts/serve-dist.js   # 后台运行，disable_timeout
 
 ### 验证页面真的生效（模式 A）
 
-在项目根目录运行本 skill 的 `scripts/verify-page.sh`（位于 skill 根目录的 `scripts/`，不是项目的 `scripts/`）一键验证：
+在项目根目录运行本 skill 的 `scripts/posix/verify-page.sh`（位于 skill 根目录的 `scripts/posix/`，不是项目的 `scripts/`）一键验证：
 
 ```bash
-<skill目录>/scripts/verify-page.sh --mode dist --route /<路由> --marker "<页面里的特征字符串>"
+<skill目录>/scripts/posix/verify-page.sh --mode dist --route /<路由> --marker "<页面里的特征字符串>"
 ```
 
 它同时验证两件事：路由可达（`http://localhost:8000/<路由>` 经 SPA fallback 返回 200）和构建产物（marker 出现在 `dist/` 的 JS 里，即页面真的打进了懒加载 chunk，如 `src/pages/foo.tsx` 对应 `dist/src__pages__foo.async.js` 之类）。退出码非 0 即对应项失败，按报错输出排查；端口不是 8000 时加 `--port`，不在项目根目录时加 `--project`。
@@ -70,12 +70,12 @@ Windows（无 bash）用对应的 PowerShell / cmd 版脚本（输出与退出�
 
 ```powershell
 # PowerShell（端口不是 8000 加 -Port，不在项目根目录加 -Project）
-scripts/verify-page.ps1 -Mode dist -Route /<路由> -Marker "<页面里的特征字符串>"
+scripts/windows/verify-page.ps1 -Mode dist -Route /<路由> -Marker "<页面里的特征字符串>"
 ```
 
 ```bat
 rem cmd（端口不是 8000 加 --port，不在项目根目录加 --project）
-scripts\verify-page.bat --mode dist --route /<路由> --marker "<页面里的特征字符串>"
+scripts\windows\verify-page.bat --mode dist --route /<路由> --marker "<页面里的特征字符串>"
 ```
 
 注意 cmd 的 findstr 对超长单行（约 8KB+，压缩产物常见）可能漏匹配，结果可疑时改用 PowerShell 版。
@@ -99,10 +99,10 @@ npm run dev   # max dev，后台运行，disable_timeout
 
 ### 验证页面真的生效（模式 B）
 
-在项目根目录运行本 skill 的 `scripts/verify-page.sh`（位于 skill 根目录的 `scripts/`，不是项目的 `scripts/`）一键验证，**端口必须传启动日志里的实际值**：
+在项目根目录运行本 skill 的 `scripts/posix/verify-page.sh`（位于 skill 根目录的 `scripts/posix/`，不是项目的 `scripts/`）一键验证，**端口必须传启动日志里的实际值**：
 
 ```bash
-<skill目录>/scripts/verify-page.sh --mode dev --route /<路由> --marker "<页面里的特征字符串>" --port <实际端口>
+<skill目录>/scripts/posix/verify-page.sh --mode dev --route /<路由> --marker "<页面里的特征字符串>" --port <实际端口>
 ```
 
 它同时验证三件事：`src/.umi/core/route.tsx` 里已生成对应路由、路由访问返回 200、页面代码真的打进了**懒加载 chunk**（如 `src/pages/foo.tsx` 对应 `http://localhost:<实际端口>/src__pages__foo.async.js`，marker 能命中），而不是只在 `/umi.js` 里。退出码非 0 即对应项失败，按报错输出排查。
@@ -111,12 +111,12 @@ Windows（无 bash）用对应的 PowerShell / cmd 版脚本（输出与退出�
 
 ```powershell
 # PowerShell
-scripts/verify-page.ps1 -Mode dev -Route /<路由> -Marker "<页面里的特征字符串>" -Port <实际端口>
+scripts/windows/verify-page.ps1 -Mode dev -Route /<路由> -Marker "<页面里的特征字符串>" -Port <实际端口>
 ```
 
 ```bat
 rem cmd
-scripts\verify-page.bat --mode dev --route /<路由> --marker "<页面里的特征字符串>" --port <实际端口>
+scripts\windows\verify-page.bat --mode dev --route /<路由> --marker "<页面里的特征字符串>" --port <实际端口>
 ```
 
 - 用户浏览器端如果仍空白：强刷（Ctrl+Shift+R）清旧 bundle。
