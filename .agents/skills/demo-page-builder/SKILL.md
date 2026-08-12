@@ -23,19 +23,18 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **项目根 = 用户会话的当前工作目录**（pwd）。所有文件写入、依赖安装、dev server、git 操作都只在当前工作目录下进行。
 - **严禁把 skill 自身所在目录当作项目根**：本 skill 可能安装在 `~/.agents/skills/` 或某个分发仓库（如 `prd-demo-skills`）里，那些位置不是用户的项目。绝不向 skill 目录写页面、装依赖、起服务或提交 git。
 - **当前目录不是前端工程时先就地初始化**：当前目录没有 `package.json`（或不是 Umi Max 工程）时，在当前目录原地初始化，而不是换到别的目录：
-  1. 复制 `references/package.json` 为当前目录的 `package.json`，把 `name` 改成当前目录名；同时复制 `references/package-lock.json` 为当前目录的 `package-lock.json`（锁定版本，加快安装）
-  2. 写 `.gitignore`：`node_modules/`、`.runtime/`、`src/.umi/`、`src/.umi-production/`、`dist/`——**绝不要忽略 `src/pages`**，页面文件必须能被 git 提交
-  3. 按 `references/environment.md` 探测 node 后执行 `npm ci --legacy-peer-deps --no-audit --no-fund`（lock 文件缺失时才退回 `npm install --legacy-peer-deps --no-audit --no-fund`）
-  4. Umi Max 约定式路由零配置即可跑，不需要额外配置文件
+  1. 按 `references/environment.md` 探测 node（POSIX 环境可直接运行本 skill 的 `scripts/check-environment.sh`），然后运行本 skill 的 `scripts/init-project.sh <当前目录>` 完成初始化：从 `assets/project-template/` 复制 `package.json`、`package-lock.json` 与 `scripts/serve-dist.js`，把 `name` 改成当前目录名，并写好 `.gitignore`（`node_modules/`、`.runtime/`、`src/.umi/`、`src/.umi-production/`、`dist/`——**绝不要忽略 `src/pages`**，页面文件必须能被 git 提交）；Windows 环境手动复制上述模板文件、改名并写 `.gitignore` 等效完成
+  2. 执行 `npm ci --legacy-peer-deps --no-audit --no-fund`（lock 文件缺失时才退回 `npm install --legacy-peer-deps --no-audit --no-fund`）
+  3. Umi Max 约定式路由零配置即可跑，不需要额外配置文件
 - 用户明确指定了其他目录时，以用户指定为准。
 
 ## 组件库白名单（严格限制，禁止引入其他组件库）
 
-**依赖总闸**：所有可用的库以 `references/package.json` 的依赖清单为准——只允许 import 清单里已有的包，**禁止安装任何新依赖**（`npm install <pkg>` 一律不行）。清单里没有的能力，用清单内已有的库实现，或如实告诉用户做不了，不擅自引入。
+**依赖总闸**：所有可用的库以 `assets/project-template/package.json` 的依赖清单为准——只允许 import 清单里已有的包，**禁止安装任何新依赖**（`npm install <pkg>` 一律不行）。清单里没有的能力，用清单内已有的库实现，或如实告诉用户做不了，不擅自引入。
 
-**唯一标准**：只允许使用 `references/package.json` 的 `dependencies` 清单里已有的包和其中的组件。判断依据只有这一份清单——不看 `node_modules` 里实际装了什么，不看历史代码里 import 过什么。**绝不允许引入清单之外的任何新组件、新库、新依赖**（`npm install <pkg>` 一律不行，手写/vendored 复制外部组件代码也不行）。
+**唯一标准**：只允许使用 `assets/project-template/package.json` 的 `dependencies` 清单里已有的包和其中的组件。判断依据只有这一份清单——不看 `node_modules` 里实际装了什么，不看历史代码里 import 过什么。**绝不允许引入清单之外的任何新组件、新库、新依赖**（`npm install <pkg>` 一律不行，手写/vendored 复制外部组件代码也不行）。
 
-清单内主要能力速查（以 `references/package.json` 实际内容为准）：
+清单内主要能力速查（以 `assets/project-template/package.json` 实际内容为准）：
 
 | 需求场景 | 用清单里的 |
 |---|---|
@@ -55,7 +54,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 这是**硬约束**，以下借口全部不成立，逐一识破：
 
 - ❌ "用户点名要求了" → 用户要求也不能直接用，只能走下面的拒绝流程
-- ❌ "这个库本来就在 node_modules 里，没新装包" → 判断标准只有 `references/package.json` 清单，不看 `node_modules` 里有什么
+- ❌ "这个库本来就在 node_modules 里，没新装包" → 判断标准只有 `assets/project-template/package.json` 清单，不看 `node_modules` 里有什么
 - ❌ "只是一个小页面/临时 demo" → 没有规模豁免
 - ❌ "清单里没有一模一样的组件" → 用清单内功能最接近的替代，而不是引入新组件
 - ❌ "我自己手写一个/抄一段源码进来" → 这也算引入新组件，同样禁止
@@ -63,7 +62,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 即使用户明确要求（"用 Element Plus 的表格"、"用 Arco 的 AutoComplete"、"用 shadcn 重做"），也**不得安装、不得 import、不得"这次先用了再提示"**。按以下三步回应：
 
 1. **拒绝**：明确说不能用，不妥协、不"先试试"、不"按你的要求做了再提醒"
-2. **告知原因**：项目可用组件以 `references/package.json` 清单为唯一标准，清单外一律禁用——混用外部组件库会导致包体积膨胀、主题/设计 token 割裂、交互风格不一致
+2. **告知原因**：项目可用组件以 `assets/project-template/package.json` 清单为唯一标准，清单外一律禁用——混用外部组件库会导致包体积膨胀、主题/设计 token 割裂、交互风格不一致
 3. **推荐同功能替代**：先在上面速查表找，找不到就按"先搜后用"流程在清单内的库（antd → ProComponents → Ant Design X → 其余清单内包）中搜索功能最接近的组件推荐给用户
 
 清单内确实没有能力覆盖的，如实告诉用户做不了，由用户决策是否破例，**不擅自引入**。

@@ -6,7 +6,9 @@
 
 ## 环境：先探测 node runtime，没有再装一个项目级隔离的
 
-**不要假设 `node`/`npm` 存在或可用。** 按以下顺序探测，命中即用：
+**不要假设 `node`/`npm` 存在或可用。** POSIX 环境（Linux/macOS/WSL）可先运行本 skill 的 `scripts/check-environment.sh <项目目录>` 一键探测：输出 `environment`（wsl/native）、`node_status`（ok/missing/bun-wrapper/too-old）、`project_status`、`dependencies` 等；退出码非 0 时按 stderr 提示对应下面的手动步骤（10=node 缺失，11=node 是 bun 壳，12=node 版本过旧，13=npm 缺失）。Windows 环境或脚本覆盖不到的环节（如安装 runtime）按下面的手动步骤执行。
+
+按以下顺序探测，命中即用：
 
 **先判断操作系统和 shell**：`uname -s`（Linux/macOS）或 `$env:OS`/`echo %OS%`（Windows）。下面命令分 POSIX shell（bash/zsh）和 Windows PowerShell 两种写法。
 
@@ -103,7 +105,7 @@
 
 ## 安装依赖
 
-与本文件同级的 `package.json`（`references/package.json`）是本项目**已知可用的依赖清单基准**：项目 `package.json` 丢失、被改坏、或需要在新目录快速重建环境时，直接复制它再安装。同级的 `package-lock.json`（`references/package-lock.json`）是配套的锁文件，一并复制后用 `npm ci` 安装，版本完全锁定且更快：
+本 skill 根目录下的 `assets/project-template/package.json` 是本项目**已知可用的依赖清单基准**：项目 `package.json` 丢失、被改坏、或需要在新目录快速重建环境时，直接复制它再安装（就地初始化场景一般由 `scripts/init-project.sh` 一步完成复制与改名）。配套的锁文件是 `assets/project-template/package-lock.json`，一并复制后用 `npm ci` 安装，版本完全锁定且更快：
 
 ```bash
 npm ci --legacy-peer-deps --no-audit --no-fund

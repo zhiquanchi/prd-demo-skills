@@ -26,6 +26,8 @@ Get-CimInstance Win32_Process -Filter "ProcessId=<PID>" | Select-Object ProcessI
 
 ## 第一步：判断环境，选择服务模式
 
+运行本 skill 的 `scripts/check-environment.sh`，看输出里的 `environment=`（初始化阶段一般已跑过）：`wsl` → 模式 A，`native` → 模式 B。等价于手动执行：
+
 ```bash
 grep -qi microsoft /proc/version || [ -n "$WSL_DISTRO_NAME" ]
 ```
@@ -39,30 +41,13 @@ grep -qi microsoft /proc/version || [ -n "$WSL_DISTRO_NAME" ]
 
 ### 启动静态服务
 
-项目里没有 `scripts/serve-dist.js` 时先创建（express 在依赖白名单内，无需新装包）：
-
-```js
-// scripts/serve-dist.js：express 静态服务 + 前端路由 fallback
-const express = require('express');
-const path = require('path');
-
-const app = express();
-const PORT = process.env.PORT || 8000;
-const distDir = path.join(__dirname, '..', 'dist');
-
-app.use(express.static(distDir));
-// SPA fallback：前端路由一律回退到 index.html
-app.get('*', (req, res) => res.sendFile(path.join(distDir, 'index.html')));
-
-app.listen(PORT, () => console.log(`Serving dist at http://localhost:${PORT}`));
-```
+项目内的 `scripts/serve-dist.js`（express 静态服务 + SPA 路由 fallback）在初始化时已由 `scripts/init-project.sh` 从 `assets/project-template/scripts/serve-dist.js` 复制到位（express 在依赖白名单内，无需新装包）；老项目缺失时把该模板文件复制到项目 `scripts/` 下即可，不要手抄，也不要改成 express 5 的通配写法（白名单锁的是 `express@^4.21.2`，express 4 语法）。
 
 ```bash
 node scripts/serve-dist.js   # 后台运行，disable_timeout
 ```
 
 - 服务一旦启动就**不需要再重启**——它只读 `dist/` 目录，重新构建后新产物自动生效。
-- 注意通配写法是 express 4 的语法；白名单锁的是 `express@^4.21.2`，不要用 express 5 的写法。
 
 ### 核心规则：每次代码改动后必须重新构建
 
@@ -73,8 +58,14 @@ node scripts/serve-dist.js   # 后台运行，disable_timeout
 
 ### 验证页面真的生效（模式 A）
 
-- 构建产物验证：页面代码在 `dist/` 的懒加载 chunk 里（页面 `src/pages/foo.tsx` 对应 `dist/src__pages__foo.async.js` 之类），用 `grep -r "页面里的特征字符串" dist/` 确认真的打进了产物。
-- 路由可达性：`curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/<路由>`，SPA 路由经 fallback 应返回 200。
+在项目根目录运行本 skill 的 `scripts/verify-page.sh`（位于 skill 根目录的 `scripts/`，不是项目的 `scripts/`）一键验证：
+
+```bash
+<skill目录>/scripts/verify-page.sh --mode dist --route /<路由> --marker "<页面里的特征字符串>"
+```
+
+它同时验证两件事：路由可达（`http://localhost:8000/<路由>` 经 SPA fallback 返回 200）和构建产物（marker 出现在 `dist/` 的 JS 里，即页面真的打进了懒加载 chunk，如 `src/pages/foo.tsx` 对应 `dist/src__pages__foo.async.js` 之类）。退出码非 0 即对应项失败，按报错输出排查；端口不是 8000 时加 `--port`，不在项目根目录时加 `--project`。
+
 - 从 dev 模式切换到静态模式后，用户浏览器必须强刷一次（Ctrl+Shift+R）清掉旧的 dev bundle，否则可能还连着已失效的旧服务。
 
 ## 模式 B（非 WSL）：dev server 热更新
@@ -94,8 +85,14 @@ npm run dev   # max dev，后台运行，disable_timeout
 
 ### 验证页面真的生效（模式 B）
 
-- 路由是否生成：`cat src/.umi/core/route.tsx`，确认有对应 path 和 `routeComponents`。
-- 页面代码在**懒加载 chunk** 里，不在 `/umi.js`：页面 `src/pages/foo.tsx` 对应 `http://localhost:<实际端口>/src__pages__foo.async.js`（端口取启动日志里的实际值），用 `curl -s ... | grep "页面里的特征字符串"` 验证。
+在项目根目录运行本 skill 的 `scripts/verify-page.sh`（位于 skill 根目录的 `scripts/`，不是项目的 `scripts/`）一键验证，**端口必须传启动日志里的实际值**：
+
+```bash
+<skill目录>/scripts/verify-page.sh --mode dev --route /<路由> --marker "<页面里的特征字符串>" --port <实际端口>
+```
+
+它同时验证三件事：`src/.umi/core/route.tsx` 里已生成对应路由、路由访问返回 200、页面代码真的打进了**懒加载 chunk**（如 `src/pages/foo.tsx` 对应 `http://localhost:<实际端口>/src__pages__foo.async.js`，marker 能命中），而不是只在 `/umi.js` 里。退出码非 0 即对应项失败，按报错输出排查。
+
 - 用户浏览器端如果仍空白：强刷（Ctrl+Shift+R）清旧 bundle。
 
 ## 已知现象（两种模式通用）
