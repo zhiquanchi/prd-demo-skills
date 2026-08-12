@@ -26,7 +26,7 @@ Get-CimInstance Win32_Process -Filter "ProcessId=<PID>" | Select-Object ProcessI
 
 ## 第一步：判断环境，选择服务模式
 
-运行本 skill 的 `scripts/check-environment.sh`，看输出里的 `environment=`（初始化阶段一般已跑过）：`wsl` → 模式 A，`native` → 模式 B。等价于手动执行：
+运行本 skill 的环境探测脚本，看输出里的 `environment=`（初始化阶段一般已跑过；POSIX 用 `scripts/check-environment.sh`，Windows 在 PowerShell / cmd 里分别用 `scripts/check-environment.ps1` / `scripts/check-environment.bat`）：`wsl` → 模式 A，`native` → 模式 B。等价于手动执行：
 
 ```bash
 grep -qi microsoft /proc/version || [ -n "$WSL_DISTRO_NAME" ]
@@ -66,6 +66,16 @@ node scripts/serve-dist.js   # 后台运行，disable_timeout
 
 它同时验证两件事：路由可达（`http://localhost:8000/<路由>` 经 SPA fallback 返回 200）和构建产物（marker 出现在 `dist/` 的 JS 里，即页面真的打进了懒加载 chunk，如 `src/pages/foo.tsx` 对应 `dist/src__pages__foo.async.js` 之类）。退出码非 0 即对应项失败，按报错输出排查；端口不是 8000 时加 `--port`，不在项目根目录时加 `--project`。
 
+Windows（无 bash）手动等效验证：
+
+```powershell
+# PowerShell：路由可达（应输出 200）+ marker 在 dist 产物里（应列出命中的 js 文件）
+(Invoke-WebRequest -Uri "http://localhost:8000/<路由>" -UseBasicParsing).StatusCode
+Get-ChildItem dist -Recurse -Filter *.js | Select-String -Pattern "<页面里的特征字符串>" -List
+```
+
+cmd 下分别用 `curl -s -o nul -w "%{http_code}" http://localhost:8000/<路由>` 和 `findstr /s /m "<页面里的特征字符串>" dist\*.js` 等效。
+
 - 从 dev 模式切换到静态模式后，用户浏览器必须强刷一次（Ctrl+Shift+R）清掉旧的 dev bundle，否则可能还连着已失效的旧服务。
 
 ## 模式 B（非 WSL）：dev server 热更新
@@ -92,6 +102,15 @@ npm run dev   # max dev，后台运行，disable_timeout
 ```
 
 它同时验证三件事：`src/.umi/core/route.tsx` 里已生成对应路由、路由访问返回 200、页面代码真的打进了**懒加载 chunk**（如 `src/pages/foo.tsx` 对应 `http://localhost:<实际端口>/src__pages__foo.async.js`，marker 能命中），而不是只在 `/umi.js` 里。退出码非 0 即对应项失败，按报错输出排查。
+
+Windows（无 bash）手动等效验证：
+
+```powershell
+# PowerShell：路由已生成 + 路由可达 + 懒加载 chunk 含 marker
+Select-String -Path src\.umi\core\route.tsx -Pattern "<路由>"
+(Invoke-WebRequest -Uri "http://localhost:<实际端口>/<路由>" -UseBasicParsing).StatusCode   # 应为 200
+(Invoke-WebRequest -Uri "http://localhost:<实际端口>/src__pages__foo.async.js" -UseBasicParsing).Content -match "<页面里的特征字符串>"   # True 即命中
+```
 
 - 用户浏览器端如果仍空白：强刷（Ctrl+Shift+R）清旧 bundle。
 

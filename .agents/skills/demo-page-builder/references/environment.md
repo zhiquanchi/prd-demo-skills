@@ -6,7 +6,7 @@
 
 ## 环境：先探测 node runtime，没有再装一个项目级隔离的
 
-**不要假设 `node`/`npm` 存在或可用。** POSIX 环境（Linux/macOS/WSL）可先运行本 skill 的 `scripts/check-environment.sh <项目目录>` 一键探测：输出 `environment`（wsl/native）、`node_status`（ok/missing/bun-wrapper/too-old）、`project_status`、`dependencies` 等；退出码非 0 时按 stderr 提示对应下面的手动步骤（10=node 缺失，11=node 是 bun 壳，12=node 版本过旧，13=npm 缺失）。Windows 环境或脚本覆盖不到的环节（如安装 runtime）按下面的手动步骤执行。
+**不要假设 `node`/`npm` 存在或可用。** 可先运行本 skill 的环境探测脚本一键探测（三者输出格式与退出码一致）：POSIX 环境（Linux/macOS/WSL）用 `scripts/check-environment.sh <项目目录>`；Windows 在 PowerShell 里用 `scripts/check-environment.ps1 <项目目录>`、cmd 里用 `scripts/check-environment.bat <项目目录>`。输出 `environment`（wsl/native）、`node_status`（ok/missing/bun-wrapper/too-old）、`project_status`、`dependencies` 等；退出码非 0 时按 stderr 提示对应下面的手动步骤（10=node 缺失，11=node 是 bun 壳，12=node 版本过旧，13=npm 缺失）。探测脚本覆盖不到的环节（如安装 runtime、用 npm 反推 node 路径）按下面的手动步骤执行。
 
 按以下顺序探测，命中即用：
 

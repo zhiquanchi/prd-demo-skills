@@ -23,7 +23,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **项目根 = 用户会话的当前工作目录**（pwd）。所有文件写入、依赖安装、dev server、git 操作都只在当前工作目录下进行。
 - **严禁把 skill 自身所在目录当作项目根**：本 skill 可能安装在 `~/.agents/skills/` 或某个分发仓库（如 `prd-demo-skills`）里，那些位置不是用户的项目。绝不向 skill 目录写页面、装依赖、起服务或提交 git。
 - **当前目录不是前端工程时先就地初始化**：当前目录没有 `package.json`（或不是 Umi Max 工程）时，在当前目录原地初始化，而不是换到别的目录：
-  1. 按 `references/environment.md` 探测 node（POSIX 环境可直接运行本 skill 的 `scripts/check-environment.sh`），然后运行本 skill 的 `scripts/init-project.sh <当前目录>` 完成初始化：从 `assets/project-template/` 复制 `package.json`、`package-lock.json` 与 `scripts/serve-dist.js`，把 `name` 改成当前目录名，并写好 `.gitignore`（`node_modules/`、`.runtime/`、`src/.umi/`、`src/.umi-production/`、`dist/`——**绝不要忽略 `src/pages`**，页面文件必须能被 git 提交）；Windows 环境手动复制上述模板文件、改名并写 `.gitignore` 等效完成
+  1. 按 `references/environment.md` 探测 node（POSIX 环境运行本 skill 的 `scripts/check-environment.sh`；Windows 在 PowerShell / cmd 里分别用 `scripts/check-environment.ps1` / `scripts/check-environment.bat`），然后运行本 skill 的 `scripts/init-project.sh <当前目录>` 完成初始化：从 `assets/project-template/` 复制 `package.json`、`package-lock.json` 与 `scripts/serve-dist.js`，把 `name` 改成当前目录名，并写好 `.gitignore`（`node_modules/`、`.runtime/`、`src/.umi/`、`src/.umi-production/`、`dist/`——**绝不要忽略 `src/pages`**，页面文件必须能被 git 提交）；Windows 环境（无 bash）手动复制上述模板文件、改名并写 `.gitignore` 等效完成
   2. 执行 `npm ci --legacy-peer-deps --no-audit --no-fund`（lock 文件缺失时才退回 `npm install --legacy-peer-deps --no-audit --no-fund`）
   3. Umi Max 约定式路由零配置即可跑，不需要额外配置文件
 - 用户明确指定了其他目录时，以用户指定为准。
