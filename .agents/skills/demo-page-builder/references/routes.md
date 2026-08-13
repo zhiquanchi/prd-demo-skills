@@ -50,3 +50,7 @@ export default function IndexPage() {
 - 改完路由后按 `references/dev-server.md` 等热更新或重启，确认 `src/.umi/core/route.tsx` 里有新 path
 - 访问 `/` 确认自动跳到第一个有内容的页面，不空白
 - 点一遍左侧导航所有菜单项，确认每个都能跳到对应页面且选中态正确；有"点了没反应"的项必须修复
+
+## ⚠️ 新增页面后内容区空白？
+
+如果看到侧边栏/顶栏正常显示但**内容区全白**，99% 是因为布局文件用了 `{children}` 而不是 `<Outlet />`。详见 `references/layout-patterns.md`。修复：把 `src/layouts/index.tsx` 里的 `{children}` 换成 `<Outlet />`。
