@@ -1,11 +1,11 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务一律用后台任务启动）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md，侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档见 references/handover.md，为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务一律用后台任务启动）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md，侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档见 references/handover.md，为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md）。
 ---
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分多份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新；服务一律用后台任务启动）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，**生成/复刻时的示例数据一律用 Umi mock、写入 `mock/` 目录而不放 UI 组件里见 `references/mock.md`**，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，**Umi Max 全局布局模式与 `<Outlet/>` 正确用法见 `references/layout-patterns.md`**，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`，为页面/功能编写业务说明（用例，正常流程+异常流程+业务规则）见 `references/use-cases.md`。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分多份参考文档（与本文件同级 `references/` 目录下）：环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新；服务一律用后台任务启动）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，**生成/复刻时的示例数据一律用 Umi mock、写入 `mock/` 目录而不放 UI 组件里见 `references/mock.md`**，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，**Umi Max 全局布局模式与 `<Outlet/>` 正确用法见 `references/layout-patterns.md`**，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`，为页面/功能编写业务说明（用例，正常流程+异常流程+业务规则）见 `references/use-cases.md`，生成 Mermaid 图（交接文档流程图、用户流程等）见 `references/mermaid.md`。
 
 ## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
 
@@ -90,7 +90,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 ## 业务说明（用例）（按需）
 
-当用户要求为登录、评论、下单等业务功能编写**用例**（业务说明），或在 PRD/交接文档中需补齐用例章节时，按 `references/use-cases.md` 撰写完整用例：
+当用户要求为登录、评论、下单等业务功能编写**用例**（业务说明），或在 PRD/交接文档中需补齐用例章节时，按 `references/use-cases.md` 撰写完整用例（用户确认满意后，用例随交接文档写入 `references/handover.md` 的「功能说明」一节）：
 
 - **每个用例四要素**：用例概述（名称/编号/参与者/优先级/前置/后置条件/触发事件）→ 正常流程（分步）→ 异常流程（表格：编号/触发操作/系统表现/处理结果）→ 业务规则
 - **异常流程要穷举**：输入校验、格式/长度限制、网络异常、重复提交、敏感词脱敏、权限不足等场景逐条列出
@@ -112,7 +112,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **每一个业务改动（页面、小功能、样式调整）完成后**，先让新改动生效（dev 模式等热更新或重启，WSL 静态模式重新 `npm run build`），**改动生效后的第一条消息就把访问地址（默认 http://localhost:8000/<路由>）发给用户确认效果**；没经过用户在浏览器里确认前，不把任务标记为完成
 - **硬性顺序：地址下发优先于内部验证**——生效后的第一条消息就发地址，**不允许先做内部验证（verify-page、无头浏览器、构建产物检查、跑测试等）再发地址**；验证是后台动作，可在发地址后并行进行，不能替代用户确认，也不能成为延迟发地址的理由
 - 用户反馈不满意 → 改 → 再生效 → **再第一时间把地址/效果发给用户** → 再确认，循环直到用户认可
-- **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，**新增页面与复刻 demo 均适用**，描述使用者实际使用这个页面的操作逻辑并配用户操作流程图、给出页面 DOM 树并说明每个组件是什么、补充设计与用户体验（设计原则/用户流程/原型/全局状态）与功能说明（目标/场景/字段规则/状态/验收标准）、对话过程摘要放最后），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略
+- **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，**新增页面与复刻 demo 均适用**，描述使用者实际使用这个页面的操作逻辑并配用户操作流程图、给出页面 DOM 树并说明每个组件是什么、补充设计与用户体验（设计原则/用户流程/原型/全局状态）与功能说明（按用例写：用例概述/正常流程/业务规则/状态/异常流程/验收标准）、对话过程摘要放最后），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略
 
 ## 进度上报（强制，防止用户误以为卡死）
 
