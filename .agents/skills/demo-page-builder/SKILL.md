@@ -1,6 +1,6 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X，详见 references/whitelist.md）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（Git 操作全套规则见 references/git.md；项目一开始即执行 Git 预检：git init 通过运行环境权限申请机制获批后立即初始化、user.name 缺失用默认身份不阻塞、无远端仅本地提交并说明未推送；git 缺失安装时须先经用户同意，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md（数据唯一来源 mock/<domain>.json，页面取数必须带格式校验与 .catch() 兜底防白屏；WSL 生产静态服务下 serve-dist.js 自动把 mock/*.json 注册为等价 /api/* 路由，未注册的 /api/* 返回 404 JSON 而非 SPA fallback HTML），侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档（先套 `references/handover.template.md` 固定模板、生成后跑 `scripts/validate-handover.mjs` 自检，见 references/handover.md），为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md，新项目与新增功能的目录组织以 Umi 官方目录结构为准、按需创建不需要的目录不新建见 references/directory-structure.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X，详见 references/whitelist.md）、先搜后用的选型流程、编码环节可并行拆分时用多个 subagent 并行开发（任务拆分与分配、验收由主会话最强模型完成不下放；coding subagent 用最快的模型并关闭思考、必须思考时用最低档；遇到疑难问题立即上报主会话、由最强模型接手解决）、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（Git 操作全套规则见 references/git.md；项目一开始即执行 Git 预检：git init 通过运行环境权限申请机制获批后立即初始化、user.name 缺失用默认身份不阻塞、无远端仅本地提交并说明未推送；git 缺失安装时须先经用户同意，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md（数据唯一来源 mock/<domain>.json，页面取数必须带格式校验与 .catch() 兜底防白屏；WSL 生产静态服务下 serve-dist.js 自动把 mock/*.json 注册为等价 /api/* 路由，未注册的 /api/* 返回 404 JSON 而非 SPA fallback HTML），侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档（先套 `references/handover.template.md` 固定模板、生成后跑 `scripts/validate-handover.mjs` 自检，见 references/handover.md），为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md，新项目与新增功能的目录组织以 Umi 官方目录结构为准、按需创建不需要的目录不新建见 references/directory-structure.md）。
 ---
 
 # Demo 页面构建总控
@@ -50,9 +50,18 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
    - 查不到再查本地包文档（`node_modules/<包>/es/**/demo`、`*.md`）或官方文档
    - 禁止凭记忆硬写不熟悉的组件 API；查到再写
 2. **选型**：按上表定位到组件库 → 定位到具体组件 → 确认当前项目装的大版本（antd 是 v5，ProComponents v2，X v2）与该版本文档一致
-3. **实现**：页面写到 `src/pages/`（Umi 约定式路由），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖；首页空白跳转、新增页面的导航绑定按 `references/routes.md` 执行，**页面所需示例数据一律用 Umi mock、写入 `mock/` 目录，不放 UI 组件里，按 `references/mock.md` 执行**
+3. **实现**：页面写到 `src/pages/`（Umi 约定式路由），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖；首页空白跳转、新增页面的导航绑定按 `references/routes.md` 执行，**页面所需示例数据一律用 Umi mock、写入 `mock/` 目录，不放 UI 组件里，按 `references/mock.md` 执行**；编码环节能并行拆分的按下方「Subagent 并行开发」用多个 subagent 并行实现
 4. **生效与验证**：按参考文档 `references/dev-server.md` 执行（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新），并用懒加载 chunk 验证页面真的打进产物，页面用到 mock 接口时用 `--api` 逐个断言返回合法 JSON（静态模式下尤其必要，防止 SPA fallback 把 `/api/*` 当页面返回 `index.html` 导致白屏）——不许"写完就报完成"
 5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。仅当使用 X 组件且**运行时报错**时，才按 `references/environment.md` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策——这是阻塞项，拿到用户决定前不要绕过；未报错则正常使用，不必提前处理
+
+## Subagent 并行开发（编码环节的并行提速规则，强制）
+
+- **拆分与分配必须由能力最强的模型完成**：任务的拆分、依赖排序、数据契约定义、subagent 提示词编写与结果验收，一律由主会话（当前会话的最强模型）亲自完成，**不下放给任何 subagent**——快速模型只负责执行拆好的任务，不负责规划；也不要让一个 subagent 去"拆任务再派发其他 subagent"
+- **能并行就并行**：编写代码时，凡是相互独立的工作单元（多个页面、同一页面内的多个区块/组件、mock 数据与页面骨架、页面与公共布局）一律拆给多个 subagent 并行开发，不要主会话串行逐个写；有依赖的工作（后一页要引用前一页产出的公共组件）按依赖排序，同层并发
+- **初始化阶段不拆 subagent、但利用等待期并行规划**：环境探测、模板复制（init-project.sh）、`npm ci` 是单一依赖链，不拆给多个 subagent（也没有可并行的文件产出）；但 `npm ci` 的等待期内，主会话并行完成不依赖 node_modules 的工作——Git 预检与 `git init`、页面/mock 的任务拆分与数据契约设计——依赖装完立即派发编码 subagent，不空等
+- **coding 用最快的模型，关闭思考**：派发编码类 subagent 时显式指定最快的模型；同时关闭思考（thinking/reasoning）。运行环境不支持关闭、必须思考时，选最低档思考。目标是用最低成本最快速度产出代码，质量兜底交给下面两条与拆分方的验收
+- **subagent 只执行，不自行解决疑难**：subagent 遇到报错、被阻塞、需要产品/技术决策的问题时，立即停止尝试，在返回消息中如实上报（错误原文、已尝试的动作、怀疑的原因），不得自行反复试错、不得擅自绕过或降低要求；由主会话（最强模型）接手分析、决策、修复，再把后续任务重新派发
+- **拆分原则**：每个 subagent 的任务必须自包含——明确写出目标文件路径、使用的白名单组件、数据契约（mock 接口路径与返回结构），互不写同一个文件；公共组件/布局由单个 subagent 或主会话统一产出，避免并行冲突；**subagent 返回后由主会话验收产出**（文件是否齐全、是否符合白名单与数据契约），不合格的重派或由主会话修，不算完成
 
 ## 示例数据用 Umi Mock（强制）
 
