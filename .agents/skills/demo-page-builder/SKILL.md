@@ -1,6 +1,6 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务一律用后台任务启动）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md，侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档见 references/handover.md，为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务一律用后台任务启动）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md，侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档（先套 `references/handover.template.md` 固定模板、生成后跑 `scripts/validate-handover.mjs` 自检，见 references/handover.md），为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md）。
 ---
 
 # Demo 页面构建总控
@@ -113,6 +113,23 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **硬性顺序：地址下发优先于内部验证**——生效后的第一条消息就发地址，**不允许先做内部验证（verify-page、无头浏览器、构建产物检查、跑测试等）再发地址**；验证是后台动作，可在发地址后并行进行，不能替代用户确认，也不能成为延迟发地址的理由
 - 用户反馈不满意 → 改 → 再生效 → **再第一时间把地址/效果发给用户** → 再确认，循环直到用户认可
 - **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，**新增页面与复刻 demo 均适用**，描述使用者实际使用这个页面的操作逻辑并配用户操作流程图、给出页面 DOM 树并说明每个组件是什么、补充设计与用户体验（设计原则/用户流程/原型/全局状态）与功能说明（按用例写：用例概述/正常流程/业务规则/状态/异常流程/验收标准）、对话过程摘要放最后），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略
+
+### 交接文档生成（硬性闭环，先模板后校验）
+
+生成交接文档不是"照着规范自由发挥"，而是**先套固定模板、生成后跑机器校验**的闭环。任何人（含模型）只要在生成交接文档，就必须按下面三步走，任一检查项不通过都不得向用户报告完成。
+
+1. **生成前必读（缺一不可）**：动手写交接文档前，必须先完整读取以下三份文件，缺任何一份都不允许开始生成：
+   - `references/handover.md` —— 交付确认流程、章节写作细则、反问澄清要求
+   - `references/handover.template.md` —— **固定模板**，生成时以此文件为骨架逐字照抄，只替换占位符
+   - `references/mermaid.md` —— Mermaid 语法细则（用户操作流程图、用户流程都要用它）
+2. **按模板生成**：以 `references/handover.template.md` 为骨架，保持**五个一级章节**（使用说明 / DOM 树与组件说明 / 设计与用户体验 / 功能说明 / 对话过程摘要）不变；「功能说明」一节对每个功能预置 0–8 完整用例字段（用例概述 / 功能目标 / 用户场景 / 页面界面说明 / 正常流程 / 业务规则 / 状态表现 / 异常流程 / 验收标准），每个功能都必须填全
+3. **生成后自检（硬性）**：写完文档、提交前，必须运行自检脚本：
+   ```
+   node scripts/validate-handover.mjs docs/handover/<tag名>.md
+   ```
+   - 脚本会校验：五个一级章节是否唯一、是否有 `mermaid` 代码块、是否含 `flowchart`、Design & UX 是否有独立用户流程、每个功能是否含完整用例字段、异常流程是否为表格、DOM 树叶子是否为白名单组件、是否残留 TODO/待补充/无依据假设、文件名是否与 tag 完全一致
+   - **脚本输出 `[FAIL]` 表示有不通过项**：先按报错逐条修正文档，**再重新运行直到全部 `[PASS]`**，才能继续走"提交文档 → 打 tag → 推 tag"，并向用户报告完成；**校验不通过时不得跳过、不得向用户报告完成**
+   - 脚本不存在/运行报错时，先修复脚本环境，不能以"脚本没跑"为由跳过自检
 
 ## 进度上报（强制，防止用户误以为卡死）
 

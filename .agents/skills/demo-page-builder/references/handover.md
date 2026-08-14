@@ -2,6 +2,8 @@
 
 用户在浏览器里确认页面效果满意之后（"可以了"、"就这样"、"满意"、"没问题"等明确认可），必须执行本流程：打 git tag 标记本次交付，并生成与 tag 同名的交接文档。
 
+> **硬性闭环**：生成交接文档不是自由发挥，而是**先套固定模板、生成后跑机器校验**。动手前必须先读 `references/handover.template.md`（固定模板，逐字照抄只换占位符）、`references/handover.md`（本细则）、`references/mermaid.md`（Mermaid 语法）三份文件；生成后必须运行 `node scripts/validate-handover.mjs docs/handover/<tag名>.md` 自检，**任一检查项不通过不得向用户报告完成**（完整闭环见 `SKILL.md` 的「交接文档生成（硬性闭环，先模板后校验）」一节）。
+
 ## 触发条件
 
 - 仅当用户**明确认可**本次页面/改动时执行，一轮会话可能产出多个 tag（每次认可一次）
@@ -44,12 +46,17 @@
   5. **对话过程摘要**——按时间顺序概括产品经理的原始需求、迭代中的每轮反馈与修改（改了什么、为什么改），直到确认满意，**放在文档最后**；
   除此之外不写交付概述、最终状态、如何继续等其他内容
 - **写作参考**：拿不准格式时，照本目录下的 `handover.example.md` 示例写——尤其 **DOM 树部分，树的每一棵子树必须终止于白名单原子组件**（antd / @ant-design/pro-components / @ant-design/x / @ant-design/icons 等清单内组件），项目自身组件（`src/components`、`src/pages` 下的组件）只负责组合这些原子组件、承载业务逻辑，**不能成为 DOM 树的叶子**；在 DOM 树上把每个当前项目组件标注出来，并说明它由哪些白名单原子组件拼成，让拿到 demo 的人一眼看懂
-- 交接文档写完后再执行一次 `git add -A && git commit && git push`，提交信息用 `docs: <tag名> 交接文档`，**确保 tag 指向的提交与文档提交相邻**——若 tag 已先于文档提交打上，需删除本地和远端 tag 后重打（`git tag -d <tag>` + `git push origin :refs/tags/<tag>`），或在一开始就先写文档再打 tag（推荐顺序：**写文档 → 提交推送 → 打 tag → 推 tag**）
+- **生成骨架**：以 `references/handover.template.md` 为固定模板，**逐字照抄其五个一级章节与每个功能的 0–8 用例字段结构**，只把占位符替换为本次交付的实际内容；不得自行增删章节、改名或打乱顺序
+- **生成后自检（硬性）**：文档写完、提交前，必须运行 `node scripts/validate-handover.mjs docs/handover/<tag名>.md`，脚本会校验五个一级章节唯一性、是否存在 mermaid 且含 flowchart、Design & UX 是否有独立用户流程、每个功能是否含完整用例字段、异常流程是否为表格、DOM 树叶子是否为白名单组件、是否残留 TODO/待补充/无依据假设、文件名是否与 tag 一致；**出现任一 `[FAIL]` 必须修正后重新运行直到全部 `[PASS]`**，校验不通过不得向用户报告完成
+- 交接文档写完后再执行一次 `git add -A && git commit && git push`，提交信息用 `docs: <tag名> 交接文档`，**确保 tag 指向的提交与文档提交相邻**——若 tag 已先于文档提交打上，需删除本地和远端 tag 后重打（`git tag -d <tag>` + `git push origin :refs/tags/<tag>`），或在一开始就先写文档再打 tag（推荐顺序：**写文档 → 自检 → 提交推送 → 打 tag → 推 tag**）
 
 ## 推荐执行顺序
 
 1. 用户确认满意
 2. 业务改动的提交与推送（若还没提交）
-3. 写 `docs/handover/<tag名>.md`，提交并推送（`docs: <tag名> 交接文档`）
-4. `git tag <tag名>` 并 `git push origin <tag名>`
-5. 告知用户：tag 名、交接文档路径
+3. 读取 `references/handover.template.md`、`references/handover.md`、`references/mermaid.md`
+4. 按模板写 `docs/handover/<tag名>.md`
+5. 运行自检 `node scripts/validate-handover.mjs docs/handover/<tag名>.md`，按 `[FAIL]` 修正直至全部 `[PASS]`
+6. 提交并推送（`docs: <tag名> 交接文档`）
+7. `git tag <tag名>` 并 `git push origin <tag名>`
+8. 告知用户：tag 名、交接文档路径
