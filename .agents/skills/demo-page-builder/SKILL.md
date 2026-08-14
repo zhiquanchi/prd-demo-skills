@@ -1,6 +1,6 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（git 缺失时经用户同意后安装，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务一律用后台任务启动）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md，侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档（先套 `references/handover.template.md` 固定模板、生成后跑 `scripts/validate-handover.mjs` 自检，见 references/handover.md），为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（项目一开始即执行 Git 预检：git init 通过运行环境权限申请机制获批后立即初始化、user.name 缺失用默认身份不阻塞、无远端仅本地提交并说明未推送；git 缺失安装时须先经用户同意，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务一律用后台任务启动）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md，侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档（先套 `references/handover.template.md` 固定模板、生成后跑 `scripts/validate-handover.mjs` 自检，见 references/handover.md），为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md）。
 ---
 
 # Demo 页面构建总控
@@ -68,6 +68,8 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 清单内确实没有能力覆盖的，如实告诉用户做不了，由用户决策是否破例，**不擅自引入**。
 
 ## 工作流程（必须按顺序）
+
+进入下列步骤前，先完成下方「Git 预检」节：项目一开始（最迟第一个页面动工前）就完成 git 检查与仓库初始化，**不拖到打 tag / 生成交接文档时才 `git init`**。
 
 1. **先搜后用**：写代码前，先在对应组件库中搜索所需组件是否已存在、叫什么、用法是什么：
    - 优先调用本机已有的 `ant-design` / `antd` skill 查 API、props、demo
@@ -143,6 +145,22 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **卡顿时如实说**：某步超过预期仍未完成，直接说明「XX 比平时慢，仍在进行 / 可能受阻，正在排查」，而不是沉默
 - **不要刷屏**：进度一行一条、只在阶段切换或长等待时输出，不逐条播报每个工具调用；同一阶段内没有实质进展不重复报
 
+## Git 预检（项目一开始执行，强制）
+
+Git 预检在项目一开始（最迟第一个页面动工前）执行，**不要拖到打 tag / 生成交接文档时才初始化**。立即检查以下四项并就地处理，不先以文字询问并停止：
+
+1. **检查**：`command -v git`（git 是否可用）、项目根是否存在 `.git`、`git config user.name` 是否有值、`git remote -v` 是否有远端。
+2. **没有 `.git`**：立即通过运行环境的权限申请机制请求 `git init` 授权（受控环境对 `.git` 的写入需要一次运行时权限提升，SKILL 文本不能替代该机制）；请求获批后立即初始化，不再以对话方式重复询问、不停下来等待。
+3. **缺少 `user.name`**：使用项目约定默认身份直接配置，不向用户索取、不阻塞交付：
+   ```
+   git config user.name "Codex"
+   git config user.email "codex@demo.local"
+   ```
+   用户已提供身份信息时以用户提供为准。
+4. **没有远端**：仅完成本地 `git commit` 和 `git tag`，并在结果中说明「未推送（无远端）」；不得因缺少远端阻塞交付。
+
+git 本体不存在时，按下方「Git 提交」节的安装规则征得用户同意后安装——这是 Git 预检中唯一的征询点。
+
 ## Git 提交（强制）
 
 - **git 不存在先安装**：开始工作前执行 `command -v git`（Windows cmd/PowerShell 用 `where git`）检查；不存在时，**先征得用户同意再安装**（与 `references/environment.md` 的"系统级安装需用户同意"规则一致），用户同意后按对应平台安装：
@@ -151,7 +169,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
   - Alpine：`apk add git`
   - macOS：`brew install git`
   - Windows：优先 `winget install --id Git.Git -e --source winget`；没有 winget 时用 `choco install git -y`；两者都没有则从 https://git-scm.com/download/win 下载安装包静默安装。Windows 上装完后新开 shell 或把 `C:\Program Files\Git\cmd` 加入 PATH 再验证 `git --version`
-- **不是 git 仓库先初始化**：项目根目录下没有 `.git` 时执行 `git init`；提交前检查 `user.name`，未配置时只需向用户索取名字并执行 `git config user.name "<名字>"`，`user.email` 不需要用户提供，自动生成一个占位邮箱即可，如 `git config user.email "<名字>@demo.local"`（未配置会导致提交失败）
+- **初始化 Git 走运行环境权限申请机制（硬性）**：项目根目录下没有 `.git` 时，先通过运行环境的权限申请机制请求 `git init` 授权（受控环境对 `.git` 的写入需要一次运行时权限提升，写在 SKILL 里不能替代该机制）；请求获批后**立即初始化，无需额外等待用户在对话中重复确认**。初始化时机按上方「Git 预检」节在项目一开始执行，不拖到交接文档阶段。提交前检查 `user.name`，未配置时按「Git 预检」节的默认身份（`Codex` / `codex@demo.local`）直接配置，不向用户索取、不因此阻塞提交；用户已提供身份信息时以用户提供为准（未配置会导致提交失败）
 - **每完成一个任务或一个改动就提交一次并推送**：一个页面、一个小功能、一次样式调整，各自对应一次 `git add -A && git commit && git push`，不要把多个改动攒成一个提交。**push 已获用户长期授权：每个任务完成后直接推送到远端，无需逐次再确认**；push 失败（如远端有新提交）时如实报告，不擅自用禁止命令强行处理
 - **提交信息用中文**：遵循 `类型: 简述` 格式，类型从 `feat`（新页面/新功能）、`fix`（修复）、`style`（样式调整）、`chore`（依赖/配置）中选
 - **简述必须是详细的功能描述，且从用户的原始输入中提取**：把用户这次要求的具体功能点写清楚——做了什么页面/功能、包含哪些关键要素（核心组件、交互、数据来源等），让不看代码的人仅凭提交信息就能知道这次改了什么。禁止 `feat: 新增页面`、`fix: 修改问题` 这类空泛描述
@@ -159,7 +177,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
   - 用户说「把表格改成斑马纹，操作列固定到右侧」→ `style: 用户列表表格增加斑马纹样式，操作列固定到右侧`
   - 用户输入很简短时，结合实现内容补全成完整描述，但不得编造用户没要求的功能
 - **git 操作白名单**：只允许 `git init`、`git add`、`git commit`、`git push`、`git pull`、`git merge`、`git tag` 七个写命令（含状态确认用的 `git status` / `git log` / `git diff` / `git tag -l` 等只读查询）。其中 `git push` 按上条规则在每个任务提交后直接执行；`git tag` 仅在用户确认满意后按 `references/handover.md` 流程使用（含删除后重打的 `git tag -d` / `git push origin :refs/tags/<tag>` 场景）；`git pull` / `git merge` **无冲突或冲突可自动合并时直接自动处理，无需逐次确认**，仅当产生 git 无法自动解决的冲突时，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决；其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行
-- **环境禁止 git 时先申请权限（硬性，不可绕过）**：若当前环境禁止或不允许执行 git 操作（如受控环境、沙箱、CI 只读、权限受限等导致 `git` 命令不可用或被拦截），**严禁绕过、可以想办法强行执行**，必须先向 agent 或用户申请权限，得到明确授权后方可进行 git 操作。此规则为强制约束：无论任务进度如何、是否紧急，均不得以任何方式规避环境限制或用替代手段达成 git 目的（如改写路径、伪装命令、换 shell、直接改远端等）；申请被拒绝时如实停止并汇报，不做二次绕过尝试
+- **环境禁止 git 时先申请权限（硬性，不可绕过）**：若当前环境禁止或不允许执行 git 操作（如受控环境、沙箱、CI 只读、权限受限等导致 `git` 命令不可用或被拦截），**严禁绕过、不得想办法强行执行**，必须先向 agent 或用户申请权限，得到明确授权后方可进行 git 操作。此规则为强制约束：无论任务进度如何、是否紧急，均不得以任何方式规避环境限制或用替代手段达成 git 目的（如改写路径、伪装命令、换 shell、直接改远端等）；申请被拒绝时如实停止并汇报，不做二次绕过尝试
 
 ## 产出要求
 
