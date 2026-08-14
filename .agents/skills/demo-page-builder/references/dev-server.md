@@ -44,7 +44,7 @@ grep -qi microsoft /proc/version || [ -n "$WSL_DISTRO_NAME" ]
 项目内的 `scripts/serve-dist.js`（express 静态服务 + SPA 路由 fallback）在初始化时已由 `scripts/posix/init-project.sh` 从 `assets/project-template/scripts/serve-dist.js` 复制到位（express 在依赖白名单内，无需新装包）；老项目缺失时把该模板文件复制到项目 `scripts/` 下即可，不要手抄，也不要改成 express 5 的通配写法（白名单锁的是 `express@^4.21.2`，express 4 语法）。
 
 ```bash
-node scripts/serve-dist.js   # 长驻进程，用后台任务启动（等同后台运行，disable_timeout）
+node scripts/serve-dist.js   # 长驻进程，优先用后台任务启动；若无后台任务功能，用 subagent 后台运行
 ```
 
 - 服务一旦启动就**不需要再重启**——它只读 `dist/` 目录，重新构建后新产物自动生效。
@@ -84,10 +84,10 @@ scripts\windows\verify-page.bat --mode dist --route /<路由> --marker "<页面�
 
 ## 模式 B（非 WSL）：dev server 热更新
 
-**使用后台任务启动 umi**：`npm run dev`（即 umi 的 `max dev`）是长驻进程，必须通过本 agent/IDE 的「后台任务」机制启动（等同后台运行并规避命令超时），**不要用阻塞式前台命令启动**。任务启动后保留其任务句柄，供后续 tail 日志（确认 `App listening at` 与 Webpack `Compiled`）和重启时停止使用：
+**优先使用后台任务启动 umi**：`npm run dev`（即 umi 的 `max dev`）是长驻进程，必须通过本 agent/IDE 的「后台任务」机制启动（等同后台运行并规避命令超时），**不要用阻塞式前台命令启动**。若当前环境无后台任务功能，则使用 **subagent** 后台运行。任务启动后保留其任务句柄，供后续 tail 日志（确认 `App listening at` 与 Webpack `Compiled`）和重启时停止使用：
 
 ```bash
-npm run dev   # 用后台任务启动 umi（max dev），disable_timeout
+npm run dev   # 优先用后台任务启动；若无后台任务功能，用 subagent 后台运行
 ```
 
 - 端口不固定：Umi Max 默认尝试 8000，被占用会自动换端口；**实际地址（Local / Network）一律以 dev server 启动日志的实际输出为准**，不要假设是 8000。
@@ -96,7 +96,7 @@ npm run dev   # 用后台任务启动 umi（max dev），disable_timeout
 ### 核心规则：每个页面/小功能完成后必须热更新或重启
 
 1. 写完一个页面或小功能后，先等热更新：tail dev server 日志，确认出现新的 `wait - [Webpack] Compiling...` → `event - [Webpack] Compiled`。
-2. **新建了 `src/pages` 等目录或首批文件时，watcher 经常监听不到新目录**（本项目已踩过：touch 文件也不触发重编译）。此时必须重启 dev server：先停掉后台任务（TaskStop），再重新用后台任务启动 umi（`npm run dev`）。
+2. **新建了 `src/pages` 等目录或首批文件时，watcher 经常监听不到新目录**（本项目已踩过：touch 文件也不触发重编译）。此时必须重启 dev server：先停掉后台任务（TaskStop），再重新用后台任务或 subagent 启动 umi（`npm run dev`）。
 3. 改已有文件一般能热更新；新增路由/新目录后如果页面没变化，不要排查代码，先重启。
 
 ### 验证页面真的生效（模式 B）
