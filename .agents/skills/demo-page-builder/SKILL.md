@@ -1,11 +1,19 @@
 ---
 name: demo-page-builder
-description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X，详见 references/whitelist.md）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（Git 操作全套规则见 references/git.md；项目一开始即执行 Git 预检：git init 通过运行环境权限申请机制获批后立即初始化、user.name 缺失用默认身份不阻塞、无远端仅本地提交并说明未推送；git 缺失安装时须先经用户同意，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md，侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档（先套 `references/handover.template.md` 固定模板、生成后跑 `scripts/validate-handover.mjs` 自检，见 references/handover.md），为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md）。
+description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/仪表盘等一切前端页面产出任务的入口 skill。触发词：生成demo、画个页面、做个页面、生成html、画界面、写个页面、demo页、原型页、复刻页面、还原原型、照这个做。规定组件库白名单（Ant Design / Ant Design Pro / Ant Design X，详见 references/whitelist.md）、先搜后用的选型流程、长耗时环节定时上报任务进度（防止用户误以为卡死）、每个改动一次 git 提交并推送（Git 操作全套规则见 references/git.md；项目一开始即执行 Git 预检：git init 通过运行环境权限申请机制获批后立即初始化、user.name 缺失用默认身份不阻塞、无远端仅本地提交并说明未推送；git 缺失安装时须先经用户同意，push 已获长期授权），以及页面完成后的生效验证（WSL 走生产构建+静态服务、其他环境走 dev server 热更新；环境细则见 references/environment.md，环境判断、起服务与验证（服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行）见 references/dev-server.md，首页空白自动跳转与左侧导航绑定见 references/routes.md，用户提供了 HTML/截图/原型要复刻时见 references/replicate.md，生成/复刻时的示例数据一律用 Umi mock、写入 mock/ 目录而不放 UI 组件里见 references/mock.md（数据唯一来源 mock/<domain>.json，页面取数必须带格式校验与 .catch() 兜底防白屏；WSL 生产静态服务下 serve-dist.js 自动把 mock/*.json 注册为等价 /api/* 路由，未注册的 /api/* 返回 404 JSON 而非 SPA fallback HTML），侧边栏等跨页面布局组件作为公共组件、样式不改且复用项目原有样式见 references/common-components.md，Umi Max 全局布局必须使用 `<Outlet/>` 而非 `{children}` 见 references/layout-patterns.md，用户确认满意后打 git tag 并生成同名交接文档（先套 `references/handover.template.md` 固定模板、生成后跑 `scripts/validate-handover.mjs` 自检，见 references/handover.md），为页面/功能编写业务说明（用例，含正常流程与异常流程）见 references/use-cases.md，生成 Mermaid 图（交接文档流程图、用户流程等）见 references/mermaid.md，新项目与新增功能的目录组织以 Umi 官方目录结构为准、按需创建不需要的目录不新建见 references/directory-structure.md）。
 ---
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分多份参考文档（与本文件同级 `references/` 目录下）：**组件库白名单与清单外拒绝流程见 `references/whitelist.md`**，环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新；服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行；服务管理规则见同文件）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，**生成/复刻时的示例数据一律用 Umi mock、写入 `mock/` 目录而不放 UI 组件里见 `references/mock.md`**，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，**Umi Max 全局布局模式与 `<Outlet/>` 正确用法见 `references/layout-patterns.md`**，Git 操作全套规则（预检/提交/白名单/权限）见 `references/git.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`，为页面/功能编写业务说明（用例，正常流程+异常流程+业务规则）见 `references/use-cases.md`，生成 Mermaid 图（交接文档流程图、用户流程等）见 `references/mermaid.md`。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分多份参考文档（与本文件同级 `references/` 目录下）：**组件库白名单与清单外拒绝流程见 `references/whitelist.md`**，环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新；服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行；服务管理规则见同文件）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，**生成/复刻时的示例数据一律用 Umi mock、写入 `mock/` 目录而不放 UI 组件里见 `references/mock.md`**，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，**Umi Max 全局布局模式与 `<Outlet/>` 正确用法见 `references/layout-patterns.md`**，Git 操作全套规则（预检/提交/白名单/权限）见 `references/git.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`，为页面/功能编写业务说明（用例，正常流程+异常流程+业务规则）见 `references/use-cases.md`，生成 Mermaid 图（交接文档流程图、用户流程等）见 `references/mermaid.md`，**新项目与新增功能的目录组织以 Umi 官方目录结构为准、按需创建见 `references/directory-structure.md`**。
+
+## 目录结构（Umi 官方约定，按需创建）
+
+初始化项目与后续新增功能时的目录组织，**以 Umi 官方目录结构（https://umijs.org/docs/guides/directory-structure）为准**，完整对照表与创建时机见 `references/directory-structure.md`。核心原则：
+
+- **按需创建，不需要的目录不要新建**：空目录不预建、不提交 git，用到该类文件时才连文件一起创建目录（如写第一个页面才建 `src/pages/`，需要示例数据才建 `mock/`）
+- `dist/`、`src/.umi/`、`src/.umi-production/` 是构建/临时产物，**永不手动创建**，已被 `.gitignore` 忽略
+- 本项目约定式路由零配置即可跑，`.umirc.ts` / `config/config.ts` 默认都不建，需要配置时优先 `.umirc.ts`
 
 ## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
 
@@ -23,9 +31,10 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **项目根 = 用户会话的当前工作目录**（pwd）。所有文件写入、依赖安装、dev server、git 操作都只在当前工作目录下进行。
 - **严禁把 skill 自身所在目录当作项目根**：本 skill 可能安装在 `~/.agents/skills/` 或某个分发仓库（如 `prd-demo-skills`）里，那些位置不是用户的项目。绝不向 skill 目录写页面、装依赖、起服务或提交 git。
 - **当前目录不是前端工程时先就地初始化**：当前目录没有 `package.json`（或不是 Umi Max 工程）时，在当前目录原地初始化，而不是换到别的目录：
-  1. 按 `references/environment.md` 探测 node（POSIX 环境运行本 skill 的 `scripts/posix/check-environment.sh`；Windows 在 PowerShell / cmd 里分别用 `scripts/windows/check-environment.ps1` / `scripts/windows/check-environment.bat`），然后运行本 skill 的 `scripts/posix/init-project.sh <当前目录>` 完成初始化：从 `assets/project-template/` 复制 `package.json`、`package-lock.json` 与 `scripts/serve-dist.js`，把 `name` 改成当前目录名，并写好 `.gitignore`（`node_modules/`、`.runtime/`、`src/.umi/`、`src/.umi-production/`、`dist/`——**绝不要忽略 `src/pages`**，页面文件必须能被 git 提交）；Windows 环境（无 bash）运行 `scripts/windows/init-project.ps1 <当前目录>`（PowerShell）或 `scripts/windows/init-project.bat <当前目录>`（cmd）等效完成
+  1. 按 `references/environment.md` 探测 node（POSIX 环境运行本 skill 的 `scripts/posix/check-environment.sh`；Windows 在 PowerShell / cmd 里分别用 `scripts/windows/check-environment.ps1` / `scripts/windows/check-environment.bat`），然后运行本 skill 的 `scripts/posix/init-project.sh <当前目录>` 完成初始化：从 `assets/project-template/` 复制 `package.json`、`package-lock.json` 与 `scripts/serve-dist.js`，把 `name` 改成当前目录名，并写好白名单模式 `.gitignore`（`/*` 默认忽略一切，只放行必要文件/目录——`package.json`、`package-lock.json`、`README.md`、`.umirc.ts`、`plugin.ts`、`config/`、`docs/`、`mock/`、`public/`、`scripts/`、`src/`；目录内 `node_modules/`、`dist/`、`.runtime/`、`src/.umi*/` 仍忽略，`.env` 有意不放行防误提交敏感信息，**`src/pages` 在白名单内页面文件必须能被 git 提交**）；Windows 环境（无 bash）运行 `scripts/windows/init-project.ps1 <当前目录>`（PowerShell）或 `scripts/windows/init-project.bat <当前目录>`（cmd）等效完成
   2. 执行 `npm ci --legacy-peer-deps --no-audit --no-fund`（lock 文件缺失时才退回 `npm install --legacy-peer-deps --no-audit --no-fund`）
   3. Umi Max 约定式路由零配置即可跑，不需要额外配置文件
+  4. 后续目录（`src/pages/`、`mock/`、`src/layouts/` 等）按 `references/directory-structure.md` 的按需创建规则，随首个对应文件一起创建，不预建空目录
 - 用户明确指定了其他目录时，以用户指定为准。
 
 ## 组件库白名单（严格限制，禁止引入其他组件库）
@@ -42,15 +51,16 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
    - 禁止凭记忆硬写不熟悉的组件 API；查到再写
 2. **选型**：按上表定位到组件库 → 定位到具体组件 → 确认当前项目装的大版本（antd 是 v5，ProComponents v2，X v2）与该版本文档一致
 3. **实现**：页面写到 `src/pages/`（Umi 约定式路由），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖；首页空白跳转、新增页面的导航绑定按 `references/routes.md` 执行，**页面所需示例数据一律用 Umi mock、写入 `mock/` 目录，不放 UI 组件里，按 `references/mock.md` 执行**
-4. **生效与验证**：按参考文档 `references/dev-server.md` 执行（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新），并用懒加载 chunk 验证页面真的打进产物——不许"写完就报完成"
+4. **生效与验证**：按参考文档 `references/dev-server.md` 执行（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新），并用懒加载 chunk 验证页面真的打进产物，页面用到 mock 接口时用 `--api` 逐个断言返回合法 JSON（静态模式下尤其必要，防止 SPA fallback 把 `/api/*` 当页面返回 `index.html` 导致白屏）——不许"写完就报完成"
 5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。仅当使用 X 组件且**运行时报错**时，才按 `references/environment.md` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策——这是阻塞项，拿到用户决定前不要绕过；未报错则正常使用，不必提前处理
 
 ## 示例数据用 Umi Mock（强制）
 
 生成 demo 和复刻原型时，页面需要展示/操作的**示例数据一律使用 Umi 的 mock 功能**（官方文档：https://umijs.org/docs/guides/mock），**写入项目根 `mock/` 目录，不写进 UI 组件**。细则见 `references/mock.md`。
 
-- **数据放哪**：示例数据（列表、表格、卡片、图表、表单回填、详情等）统一放 `mock/*.ts`，一个业务域一个文件；**禁止把数据硬编码在 `src/pages/**`、`src/components/**` 里**（页面里写 `const data = [...]`、或 import 一个放在 `src/` 下的数据文件都不行）
-- **页面怎么取数**：用 Umi Max 内置的 `request`（从 `@umijs/max` 导入，零配置免装依赖）异步请求 mock 接口；`mock/` 里的接口路径与页面 `request` 的路径必须一致
+- **数据放哪**：示例数据（列表、表格、卡片、图表、表单回填、详情等）统一放 `mock/<domain>.json`（数据本体、唯一数据源）+ `mock/<domain>.ts`（导入 JSON 导出 Umi Mock 接口）；**禁止把数据硬编码在 `src/pages/**`、`src/components/**` 里**（页面里写 `const data = [...]`、或 import 一个放在 `src/` 下的数据文件都不行），也禁止在静态服务脚本里重复硬编码
+- **页面怎么取数**：用 Umi Max 内置的 `request`（从 `@umijs/max` 导入，零配置免装依赖）异步请求 mock 接口；`mock/` 里的接口路径与页面 `request` 的路径必须一致；**取数必须带运行时格式校验与 `.catch()` 兜底**——接口失败或响应格式不符时保留安全初始状态（列表初始 `[]`）并显示可理解的错误提示，**不得把 `undefined` 写进后续会 `.filter()`/`.map()` 的 state 导致白屏**
+- **生产静态服务（WSL 模式 A）必须提供等价 API 路由**：Umi Mock 只在 dev 模式生效，静态服务 `scripts/serve-dist.js` 会自动把 `mock/<name>.json` 注册为 `GET /api/<name>`，未注册的 `/api/*` 一律 404 JSON、绝不 SPA fallback 返回 `index.html`（否则页面把 HTML 当 JSON 解析即白屏）；新增 mock JSON 文件后需重启服务，重启前先检测端口占用、停掉本项目旧进程，重启后用 `--api` 重新断言返回的是新数据 JSON。静态模式白屏（构建、静态服务、首屏、mock API 成功返回、接口异常兜底）是必测回归场景，细则见 `references/mock.md` 与 `references/dev-server.md`
 - **mock 的是数据来源，不是功能**：交互逻辑（增删改、搜索、筛选、排序、分页、表单校验）仍真实实现、真实生效，只是数据来自 mock 接口，不能因为 mock 就跳过功能
 - **批量/随机数据**：可用项目模板 `package.json` 里已有的 `mockjs` 生成，不额外装包
 - **复刻场景**：原稿里的真实文案/数据可直接作为 mock 返回值，规则同样适用（见 `references/replicate.md`）

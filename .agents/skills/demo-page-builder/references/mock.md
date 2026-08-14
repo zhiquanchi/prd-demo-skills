@@ -8,13 +8,15 @@
 
 - ❌ 在页面里写 `const data = [{...}]` 数组/对象字面量作为列表、表格、图表、表单的数据源
 - ❌ 在页面里 import 一个放在 `src/` 下的"数据文件"
-- ✅ 数据统一放在 `mock/*.ts`，页面用 `request('/api/xxx')` 异步取数
+- ✅ 数据统一放在 `mock/*.json` + `mock/*.ts`（见下节），页面用 `request('/api/xxx')` 异步取数
+
+**`mock/` 是示例数据的唯一数据源**：同一份示例数据只允许存在一份，禁止在页面组件、静态服务脚本（`scripts/serve-dist.js`）或其他任何位置重复硬编码。
 
 mock 的是**数据来源**，不是功能本身。交互逻辑（增删改、搜索、筛选、排序、分页、表单校验）仍然真实实现、真实生效，只是数据来自 mock 接口，不能因为 mock 就跳过功能。
 
 ## mock 目录与文件
 
-项目根下新建 `mock/` 目录，按业务域拆文件（如 `mock/users.ts`、`mock/orders.ts`、`mock/charts.ts`）。Umi 约定 `mock/` 下所有文件都是 mock 文件，默认导出对象，对象的每个 key 对应一个接口：
+项目根下新建 `mock/` 目录，按业务域拆文件（如 `mock/users.ts` + `mock/users.json`、`mock/orders.ts` + `mock/orders.json`）。Umi 约定 `mock/` 下所有 `.ts` 文件都是 mock 文件，默认导出对象，对象的每个 key 对应一个接口（**页面取数的 GET 数据本体必须落 `mock/<domain>.json`**，见下节；下面示例里的内联写法仅用于说明 key 结构，POST/PUT/DELETE 等操作型响应可直接内联）：
 
 ```ts
 // ./mock/users.ts
@@ -57,28 +59,94 @@ export default {
 };
 ```
 
-## 页面侧取数
+## 数据落盘：`mock/<domain>.json` 为唯一数据源（强制）
 
-页面用 Umi Max 内置的 `request`（从 `@umijs/max` 导入，零配置、免装依赖）异步请求 mock 接口：
+页面使用的每个 GET 型示例数据接口，数据本体放 `mock/<domain>.json`，`mock/<domain>.ts` 导入该 JSON 并导出 Umi Mock 接口：
+
+```jsonc
+// ./mock/keywords.json —— 数据本体，唯一数据源
+{
+  "rows": [
+    { "id": 1, "keyword": "示例词", "score": 96 }
+  ],
+  "total": 1
+}
+```
+
+```ts
+// ./mock/keywords.ts —— 导入 JSON，导出 mock 接口
+import keywords from './keywords.json';
+
+export default {
+  '/api/keywords': keywords,
+};
+```
+
+- **禁止在页面组件或静态服务脚本（`scripts/serve-dist.js`）里重复硬编码同一份数据**——它们只能从 `mock/<domain>.json` 读取
+- 顶层字段就是页面的数据契约（如 `rows`、`total`），页面与验证脚本都按它校验
+- mockjs 随机数据这类"非静态 JSON"只能用于开发期增强，页面核心展示数据仍要有确定性的 JSON 落盘
+
+## 生产静态服务下的 mock API 等价路由（模式 A 强制）
+
+**Umi Mock 只在开发模式（`max dev`）生效**。WSL 环境走"生产构建 + 静态服务"（模式 A，见 `dev-server.md`）时，`max build` 产物里没有任何 mock 逻辑——静态服务如果不提供等价 API 路由，`/api/xxx` 会被 SPA fallback 接住并返回 `index.html`，页面把 HTML 当 JSON 解析后访问 `data.rows` 等字段直接运行时异常，**表现为刷新瞬间可见页面骨架、接口请求返回后整页白屏**。
+
+强制规则：
+
+1. **凡是页面 `request('/api/xxx')` 用到的接口，静态服务必须提供等价路由**——没有等价路由的 mock 接口不允许上线静态验证
+2. 项目模板的 `scripts/serve-dist.js` 已内置等价路由：**自动把 `mock/<name>.json` 注册为 `GET /api/<name>`**（按启动时扫描注册，新增 JSON 文件需重启服务；文件内容每次请求现读，改数据不用重启）；未注册的 `/api/*` 一律返回 404 JSON，绝不落入 SPA fallback 返回 HTML
+3. 路径对应关系：`mock/keywords.json` ⇄ `/api/keywords` ⇄ 页面 `request('/api/keywords')`，三处路径必须一致
+4. 老项目的 `serve-dist.js` 没有 mock 路由时，从 `assets/project-template/scripts/serve-dist.js` 重新复制，不要手抄
+5. 验证时用 verify-page 脚本的 `--api` 参数逐个断言（见 `dev-server.md`），确认返回的是合法 JSON 而不是 `index.html`
+
+## 页面侧取数（必须带格式校验与兜底）
+
+页面用 Umi Max 内置的 `request`（从 `@umijs/max` 导入，零配置、免装依赖）异步请求 mock 接口。**取数必须做运行时格式校验并接 `.catch()` 兜底**：接口失败或响应不符合预期时保留安全初始状态并给出可理解的错误提示，**绝不把 `undefined`/非预期结构写进后续会 `.filter()`、`.map()` 的 state**——否则一次异常就白屏：
 
 ```tsx
 import { request } from '@umijs/max';
 import { useEffect, useState } from 'react';
-import { Table } from 'antd';
+import { Table, Alert } from 'antd';
+
+type UserRow = { id: number; name: string; role: string };
+type UsersResp = { rows?: UserRow[] };
 
 export default function Users() {
-  const [data, setData] = useState([]);
+  // 安全初始状态：数组就是数组，绝不为 undefined
+  const [rows, setRows] = useState<UserRow[]>([]);
+  const [error, setError] = useState('');
+
   useEffect(() => {
-    request('/api/users').then((res) => setData(res));
+    let alive = true;
+    request('/api/users')
+      .then((res: UsersResp) => {
+        if (!alive) return;
+        // 运行时格式校验：只有拿到符合预期的结构才写入 state
+        if (Array.isArray(res?.rows)) {
+          setRows(res.rows);
+        } else {
+          setError('接口返回的数据格式不符合预期，请稍后重试');
+        }
+      })
+      .catch(() => {
+        if (alive) setError('数据加载失败，请检查网络后重试');
+      });
+    return () => {
+      alive = false;
+    };
   }, []);
-  return <Table rowKey="id" columns={columns} dataSource={data} />;
+
+  if (error) return <Alert type="error" showIcon message={error} />;
+  return <Table rowKey="id" columns={columns} dataSource={rows} />;
 }
 ```
 
 要点：
 
+- **安全初始状态**：列表/表格/图表数据初始值用 `[]`，对象用 `{}` 或明确兜底值；`res.rows` 之类取字段前先判结构（`Array.isArray` 等）
+- **`.catch()` 必须有**：请求失败（网络错误、404、超时）时展示错误提示（如 antd `Alert`/`message`），页面骨架与其他区块保持可用，不允许抛到 React 边界外白屏
+- **错误提示可理解**：面向用户的文案，不是原始异常堆栈
 - 接口路径（如 `/api/users`）在 `mock/` 与页面 `request` 里**保持一致**，否则请求 404
-- mock 默认开启，无需配置；如页面取不到数据，先确认 mock 文件确实导出且路径一致，再看 `mock/` 文件是否正确加载
+- mock 默认开启，无需配置；如页面取不到数据，先确认 mock 文件确实导出且路径一致，再看 `mock/` 文件是否正确加载；生产静态模式下则先确认 `mock/<domain>.json` 存在且 serve-dist 已注册对应路由
 - 交互后的数据变化由 mock 函数或前端 state 驱动，mock 接口只负责给初始/静态示例数据
 - 复刻原稿时，原稿里的真实文案/数据可直接作为 mock 返回值
 
