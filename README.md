@@ -60,6 +60,7 @@ cp -r /tmp/prd-demo-skills/.agents/skills /path/to/your-project/.agents/
         ├── dev-server.md             # 起服务与页面生效验证的细则（启动前检查 8000 端口被本任务旧进程占用则 kill 复用；WSL：生产构建+静态服务；其他环境：dev server 热更新）
         ├── routes.md                 # 路由与导航细则：首页空白自动跳转第一个有内容页面、新增页面必须绑定左侧导航入口
         ├── replicate.md              # 参考原型复刻细则：用户提供 HTML/截图/原型时，先理解原稿再用当前技术栈一比一复刻
+        ├── mock.md                   # 示例数据用 Umi mock 细则：生成/复刻时的示例数据一律写入 mock/ 目录、页面用 request 取数，不放 UI 组件里
         ├── common-components.md      # 公共组件细则：侧边栏等跨页面布局组件必须提取为公共组件复用，样式不改、使用项目原有样式
         ├── handover.md               # 交付确认细则：用户确认满意后打中文语义 git tag 并生成同名交接文档（docs/handover/<tag名>.md），新增页面与复刻 demo 均适用：描述使用者实际操作逻辑并配操作流程图、给出页面 DOM 树并说明每个组件是什么、补充设计与用户体验与功能说明、对话过程摘要放最后；格式可参考 handover.example.md
         ├── handover.example.md       # 交接文档示例：以「用户管理页」演示五部分写法（使用说明+流程图、DOM树与组件说明、设计与UX、功能说明、对话过程摘要），其中 DOM 树最底层终止于白名单原子组件
@@ -71,6 +72,7 @@ cp -r /tmp/prd-demo-skills/.agents/skills /path/to/your-project/.agents/
 - **references/dev-server.md**：起服务与验证细则——启动前先查 8000 端口：被本任务旧进程占用则 kill 复用原端口，被无关进程占用则换端口；再判断环境：WSL 用生产构建 + express 静态服务（规避 WSL 转发层断开 HMR WebSocket 导致的整页刷新），其他环境用 dev server 热更新（新目录后必须重启）；用懒加载 chunk 验证页面真的打进产物。
 - **references/routes.md**：路由与页面导航细则——Umi 约定式路由速查；首页 `/` 不允许空白，自动跳转第一个有内容的页面；新增页面必须分析并绑定左侧导航入口（已有菜单项必绑跳转、缺入口则补菜单项），菜单选中态跟随路由。
 - **references/replicate.md**：参考原型复刻细则——用户提供 HTML 文件/代码片段、截图、设计稿、线上 URL 等参考物时，先拆解原稿产出复刻清单（区块、精确配色、字体间距、交互、文案），再将原稿元素映射到白名单组件，用当前技术栈一比一复刻，最后截图与原稿对比验证还原度。
+- **references/mock.md**：示例数据用 Umi mock 细则——生成 demo 和复刻原型时，页面所需的示例数据（列表、表格、卡片、图表、表单回填、详情等）一律用 Umi mock（https://umijs.org/docs/guides/mock）：数据写入项目根 `mock/*.ts`，页面用 Umi Max 内置 `request` 异步取数，禁止把示例数据硬编码在 UI 组件里；可用清单内已有的 `mockjs` 生成随机/批量数据。
 - **references/common-components.md**：公共组件规则——侧边栏等跨页面布局组件必须提取到 `src/components/` 统一引用，禁止逐页复制；样式以项目现有实现为唯一来源，不改样式、不做覆盖；新增页面只允许加菜单项、绑跳转这类结构性变更。
 - **references/handover.md**：交付确认细则——用户明确认可后，按 `deliver-<中文语义名>-<日期>-<序号>` 打 git tag 并推送，同时生成同名交接文档 `docs/handover/<tag名>.md`（**新增页面与复刻 demo 均适用**：描述使用者实际使用页面的操作逻辑并配用户操作流程图、给出页面 DOM 树并说明每个组件是什么、补充设计与用户体验（设计原则/用户流程/原型/全局状态）与功能说明（目标/场景/字段规则/状态/验收标准）、对话过程摘要放最后），作为每次交付的收尾动作。格式拿不准时参考 `references/handover.example.md`。
 
