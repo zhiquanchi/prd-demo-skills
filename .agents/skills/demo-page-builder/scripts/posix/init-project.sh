@@ -2,7 +2,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-skill_dir="$(cd "$script_dir/.." && pwd -P)"
+skill_dir="$(cd "$script_dir/../.." && pwd -P)"
 template_dir="$skill_dir/assets/project-template"
 project_dir="${1:-$PWD}"
 
@@ -42,13 +42,38 @@ for (const file of [process.env.PKG_FILE, process.env.LOCK_FILE]) {
 }
 '
 
+# Whitelist .gitignore: ignore everything except necessary files (Umi directory structure, created on demand)
 gitignore="$project_dir/.gitignore"
-touch "$gitignore"
-for entry in node_modules/ .runtime/ src/.umi/ src/.umi-production/ dist/; do
-  if ! grep -Fqx "$entry" "$gitignore"; then
-    printf '%s\n' "$entry" >> "$gitignore"
-  fi
-done
+if [[ ! -f "$gitignore" ]]; then
+  cat > "$gitignore" <<'EOF'
+# Whitelist mode: ignore everything by default, keep only necessary files.
+
+/*
+
+# root-level files
+!/.gitignore
+!/package.json
+!/package-lock.json
+!/README.md
+!/.umirc.ts
+!/plugin.ts
+
+# necessary dirs (created on demand, no empty dirs committed)
+!/config/
+!/docs/
+!/mock/
+!/public/
+!/scripts/
+!/src/
+
+# build/temp artifacts inside allowed dirs stay ignored
+node_modules/
+dist/
+.runtime/
+src/.umi/
+src/.umi-production/
+EOF
+fi
 
 echo "Initialized Umi Max demo project in $project_dir"
 echo "Next: check the environment, then run npm ci --legacy-peer-deps --no-audit --no-fund"

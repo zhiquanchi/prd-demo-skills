@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath $ProjectDir -PathType Container)) {
 $ProjectDir = (Resolve-Path -LiteralPath $ProjectDir).Path
 
 $scriptDir = $PSScriptRoot
-$skillDir = Split-Path -LiteralPath $scriptDir -Parent
+$skillDir = Split-Path -LiteralPath (Split-Path -LiteralPath $scriptDir -Parent) -Parent
 $templateDir = Join-Path $skillDir "assets/project-template"
 
 $sep = [IO.Path]::DirectorySeparatorChar
@@ -68,16 +68,38 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# Whitelist .gitignore: ignore everything except necessary files (Umi directory structure, created on demand)
 $gitignore = Join-Path $ProjectDir ".gitignore"
-$entries = @("node_modules/", ".runtime/", "src/.umi/", "src/.umi-production/", "dist/")
-$existing = @()
-if (Test-Path -LiteralPath $gitignore) {
-    $existing = @(Get-Content -LiteralPath $gitignore)
-}
-foreach ($entry in $entries) {
-    if ($existing -notcontains $entry) {
-        Add-Content -LiteralPath $gitignore -Value $entry
-    }
+if (-not (Test-Path -LiteralPath $gitignore)) {
+    $content = @'
+# Whitelist mode: ignore everything by default, keep only necessary files.
+
+/*
+
+# root-level files
+!/.gitignore
+!/package.json
+!/package-lock.json
+!/README.md
+!/.umirc.ts
+!/plugin.ts
+
+# necessary dirs (created on demand, no empty dirs committed)
+!/config/
+!/docs/
+!/mock/
+!/public/
+!/scripts/
+!/src/
+
+# build/temp artifacts inside allowed dirs stay ignored
+node_modules/
+dist/
+.runtime/
+src/.umi/
+src/.umi-production/
+'@
+    Set-Content -LiteralPath $gitignore -Value $content
 }
 
 Write-Output "Initialized Umi Max demo project in $ProjectDir"

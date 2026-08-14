@@ -16,7 +16,7 @@ if not exist "%PROJECT_DIR%\" (
 )
 for %%i in ("%PROJECT_DIR%") do set "PROJECT_DIR=%%~fi"
 
-for %%i in ("%~dp0..") do set "SKILL_DIR=%%~fi"
+for %%i in ("%~dp0..\..") do set "SKILL_DIR=%%~fi"
 if /i "%PROJECT_DIR%"=="%SKILL_DIR%" (
     echo Refusing to initialize inside the skill directory: %PROJECT_DIR% 1>&2
     exit /b 3
@@ -71,20 +71,39 @@ if errorlevel 1 (
     exit /b 1
 )
 
+rem Whitelist .gitignore: ignore everything except necessary files (Umi directory structure, created on demand)
 set "GITIGNORE=%PROJECT_DIR%\.gitignore"
-if not exist "%GITIGNORE%" type nul > "%GITIGNORE%"
-call :ensure_entry node_modules/
-call :ensure_entry .runtime/
-call :ensure_entry src/.umi/
-call :ensure_entry src/.umi-production/
-call :ensure_entry dist/
+if not exist "%GITIGNORE%" (
+    (
+        echo # Whitelist mode: ignore everything by default, keep only necessary files.
+        echo.
+        echo /*
+        echo.
+        echo # root-level files
+        echo ^!/.gitignore
+        echo ^!/package.json
+        echo ^!/package-lock.json
+        echo ^!/README.md
+        echo ^!/.umirc.ts
+        echo ^!/plugin.ts
+        echo.
+        echo # necessary dirs ^(created on demand, no empty dirs committed^)
+        echo ^!/config/
+        echo ^!/docs/
+        echo ^!/mock/
+        echo ^!/public/
+        echo ^!/scripts/
+        echo ^!/src/
+        echo.
+        echo # build/temp artifacts inside allowed dirs stay ignored
+        echo node_modules/
+        echo dist/
+        echo .runtime/
+        echo src/.umi/
+        echo src/.umi-production/
+    ) > "%GITIGNORE%"
+)
 
 echo Initialized Umi Max demo project in %PROJECT_DIR%
 echo Next: check the environment, then run npm ci --legacy-peer-deps --no-audit --no-fund
 exit /b 0
-
-:ensure_entry
-findstr /x /l /c:"%~1" "%GITIGNORE%" >nul 2>nul
-if not errorlevel 1 goto :eof
-echo %~1>>"%GITIGNORE%"
-goto :eof
