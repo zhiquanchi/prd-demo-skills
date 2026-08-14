@@ -5,7 +5,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分多份参考文档（与本文件同级 `references/` 目录下）：**组件库白名单与清单外拒绝流程见 `references/whitelist.md`**，环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新；服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行；服务管理规则见同文件）见 `references/dev-server.md`，路由、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，**生成/复刻时的示例数据一律用 Umi mock、写入 `mock/` 目录而不放 UI 组件里见 `references/mock.md`**，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，**Umi Max 全局布局模式与 `<Outlet/>` 正确用法见 `references/layout-patterns.md`**，Git 操作全套规则（预检/提交/白名单/权限）见 `references/git.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`，为页面/功能编写业务说明（用例，正常流程+异常流程+业务规则）见 `references/use-cases.md`，生成 Mermaid 图（交接文档流程图、用户流程等）见 `references/mermaid.md`，**新项目与新增功能的目录组织以 Umi 官方目录结构为准、按需创建见 `references/directory-structure.md`**。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分多份参考文档（与本文件同级 `references/` 目录下）：**组件库白名单与清单外拒绝流程见 `references/whitelist.md`**，环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新；服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行；服务管理规则见同文件）见 `references/dev-server.md`，路由路径命名（kebab-case + REST 风格）与结构规范、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，**生成/复刻时的示例数据一律用 Umi mock、写入 `mock/` 目录而不放 UI 组件里见 `references/mock.md`**，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，**Umi Max 全局布局模式与 `<Outlet/>` 正确用法见 `references/layout-patterns.md`**，Git 操作全套规则（预检/提交/白名单/权限）见 `references/git.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`，为页面/功能编写业务说明（用例，正常流程+异常流程+业务规则）见 `references/use-cases.md`，生成 Mermaid 图（交接文档流程图、用户流程等）见 `references/mermaid.md`，**新项目与新增功能的目录组织以 Umi 官方目录结构为准、按需创建见 `references/directory-structure.md`**。
 
 ## 目录结构（Umi 官方约定，按需创建）
 
@@ -50,7 +50,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
    - 查不到再查本地包文档（`node_modules/<包>/es/**/demo`、`*.md`）或官方文档
    - 禁止凭记忆硬写不熟悉的组件 API；查到再写
 2. **选型**：按上表定位到组件库 → 定位到具体组件 → 确认当前项目装的大版本（antd 是 v5，ProComponents v2，X v2）与该版本文档一致
-3. **实现**：页面写到 `src/pages/`（Umi 约定式路由），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖；首页空白跳转、新增页面的导航绑定按 `references/routes.md` 执行，**页面所需示例数据一律用 Umi mock、写入 `mock/` 目录，不放 UI 组件里，按 `references/mock.md` 执行**；编码环节能并行拆分的按下方「Subagent 并行开发」用多个 subagent 并行实现
+3. **实现**：页面写到 `src/pages/`（Umi 约定式路由，路径命名用 kebab-case + REST 风格、按 `references/routes.md` 的「路径命名与结构规范」执行），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖；首页空白跳转、新增页面的导航绑定按 `references/routes.md` 执行，**页面所需示例数据一律用 Umi mock、写入 `mock/` 目录，不放 UI 组件里，按 `references/mock.md` 执行**；编码环节能并行拆分的按下方「Subagent 并行开发」用多个 subagent 并行实现
 4. **生效与验证**：按参考文档 `references/dev-server.md` 执行（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新），并用懒加载 chunk 验证页面真的打进产物，页面用到 mock 接口时用 `--api` 逐个断言返回合法 JSON（静态模式下尤其必要，防止 SPA fallback 把 `/api/*` 当页面返回 `index.html` 导致白屏）——不许"写完就报完成"
 5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。仅当使用 X 组件且**运行时报错**时，才按 `references/environment.md` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策——这是阻塞项，拿到用户决定前不要绕过；未报错则正常使用，不必提前处理
 
