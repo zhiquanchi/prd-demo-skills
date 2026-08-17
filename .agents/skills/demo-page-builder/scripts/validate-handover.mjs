@@ -144,6 +144,11 @@ function main() {
     check(leafViolations.length === 0, 'DOM 树叶子均为白名单组件',
       leafViolations.length ? leafViolations.join(' / ') : undefined);
   }
+  if (treeLines.length > 0) {
+    const bareLeaves = findLeavesWithoutAnnotations(treeLines);
+    check(bareLeaves.length === 0, 'DOM 树叶子带用途注释（# 字段/列名/按钮行为等，防粗粒度树）',
+      bareLeaves.length ? bareLeaves.join(' / ') : undefined);
+  }
 
   /* ---------- 8. 无 TODO / 待补充 / 无依据假设 ---------- */
   const placeholders = PLACEHOLDER_MARKERS.filter((m) => content.includes(m));
@@ -242,6 +247,18 @@ function findNonWhitelistLeaves(treeLines) {
     }
   }
   return violations;
+}
+
+/** 找 DOM 树中不带任何用途注释（# 或全/半角括注）的叶子节点——粗粒度树的信号 */
+function findLeavesWithoutAnnotations(treeLines) {
+  const bare = [];
+  for (let i = 0; i < treeLines.length; i++) {
+    if (!isLeaf(treeLines, i)) continue;
+    const stripped = treeLines[i].trim().replace(/^[│├└─\s]+/, '');
+    if (!stripped) continue;
+    if (!/[#（(]/.test(stripped)) bare.push(`「${stripped}」`);
+  }
+  return bare;
 }
 
 function escapeRegExp(s) {

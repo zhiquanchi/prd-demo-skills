@@ -65,6 +65,8 @@ flowchart TD
 > 树中缩进表达嵌套层级；每个节点标注对应**当前项目自身的组件**（`src/pages` / `src/components` 下），
 > **最底层节点必须是白名单原子组件**（antd / @ant-design/pro-components / @ant-design/x 等清单内组件）。
 > 命名约定：`自身组件` 用项目实际文件路径，`原子组件` 标注所属库（如 `antd:Button`）。
+> 粒度到**字段/控件级**：每个可交互控件单独成叶子并带 `#` 用途注释（字段名、必填、校验、options、关键 props），
+> 树后写「布局与样式要点」小节——前端拿着文档 + 原型即可直接编码。
 
 ```
 用户管理页 (src/pages/UserManagement/index.tsx)
@@ -106,13 +108,10 @@ flowchart TD
 ├── 新增/编辑抽屉
 │   └── UserFormDrawer (src/components/UserFormDrawer/index.tsx)    # 项目组件：新增/编辑共用表单抽屉
 │       ├── antd:Drawer            # 抽屉容器
-│       │   ├── antd:Form          # 表单
-│       │   │   ├── antd:Form.Item(用户名)
-│       │   │   │   └── antd:Input
-│       │   │   ├── antd:Form.Item(邮箱)
-│       │   │   │   └── antd:Input
-│       │   │   └── antd:Form.Item(角色)
-│       │   │       └── antd:Select
+│       │   └── antd:Form          # 表单（vertical 布局）
+│       │       ├── antd:Form.Item # 用户名：必填 + 长度 2-20，控件 antd:Input
+│       │       ├── antd:Form.Item # 邮箱：必填 + 邮箱格式校验，控件 antd:Input
+│       │       └── antd:Form.Item # 角色：必填，控件 antd:Select，选项 admin/operator/viewer
 │       │   └── antd:Space          # 底部操作按钮
 │       │       ├── antd:Button(取消)
 │       │       └── antd:Button(保存, type=primary)
@@ -132,7 +131,14 @@ flowchart TD
 | 新增/编辑 | `UserFormDrawer` | `src/components/` | 新增与编辑共用的表单抽屉 | `antd:Drawer` + `antd:Form` + `antd:Input` + `antd:Select` + `antd:Space` + `antd:Button` |
 | 删除确认 | 无独立组件（直接用原子组件） | — | 单条/批量删除的二次确认 | `antd:Popconfirm` |
 
-> **关键约定**：DOM 树的每一棵子树都**终止于白名单原子组件**——`antd`（Button/Card/Table/Form/Input/Select/Drawer/Popconfirm/Statistic/Avatar/Tag/Pagination/Space）、`@ant-design/pro-components`（ProTable/ProFormText/ProFormSelect）、`@ant-design/x`（AI 场景的 Sender/Bubble 等）、`@ant-design/icons`（图标）。项目自身组件（`UserStatCards` 等）只负责组织这些原子组件、提供业务逻辑，**自身不重复造 UI**，因此树的叶子一定是框架原子组件，而不是自定义 DOM。
+> **关键约定**：DOM 树的每一棵子树都**终止于白名单原子组件**——`antd`（Button/Card/Table/Form/Input/Select/Drawer/Popconfirm/Statistic/Avatar/Tag/Pagination/Space）、`@ant-design/pro-components`（ProTable/ProFormText/ProFormSelect）、`@ant-design/x`（AI 场景的 Sender/Bubble 等）、`@ant-design/icons`（图标）。项目自身组件（`UserStatCards` 等）只负责组织这些原子组件、提供业务逻辑，**自身不重复造 UI**，因此树的叶子一定是框架原子组件，而不是自定义 DOM；**每个叶子必须带 `#` 或括号用途注释**（字段名/列名/按钮行为），粒度到字段/控件级。
+
+### 布局与样式要点
+
+- 内容区：`max-width 1200px` 水平居中，页内上下留白 24px
+- 栅格：统计卡片区一行四张等宽；搜索区字段横排、右对齐查询/重置；表格区通栏
+- 响应式：≤768px 统计卡片改两列、搜索字段换行
+- 禁用与反馈：表格查询期间 loading；抽屉保存按钮提交时 loading，防重复提交
 
 ---
 
