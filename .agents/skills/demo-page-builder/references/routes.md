@@ -19,11 +19,24 @@
 
 - **全部小写，多单词用中划线（kebab-case）**：如 `/user-center`，不用驼峰（`userCenter`）或下划线（`user_center`）——即 `src/pages/user-center/`，文件名同理
 - **语义化命名，见名知意**，避免无意义缩写：用 `/user` 而非 `/u`、`/settings` 而非 `/set`
-- **REST 风格**：资源用名词，操作隐含在页面中（约定式路由下用 `[参数名]` 括号命名法做动态参数，Umi 4 不再用旧版的 `$` 前缀）：
+- **REST 风格**：资源用名词，操作隐含在页面中（约定式路由下，动态参数文件使用 **`$param`** 命名法）：
   - 列表：`src/pages/users/index.tsx` → `/users`
-  - 详情：`src/pages/users/[id].tsx` → `/users/:id`
+  - 详情：`src/pages/users/$id.tsx` → `/users/:id`
   - 新建：`src/pages/users/new.tsx` → `/users/new`
-  - 编辑：`src/pages/users/[id]/edit.tsx` → `/users/:id/edit`
+  - 编辑：`src/pages/users/$id/edit.tsx` → `/users/:id/edit`
+
+### ⚠️ 动态路由文件命名规则（强制）
+
+当前 Umi Max 4（含 4.7.x）约定式路由中，**动态参数文件必须使用 `$param` 前缀**（如 `$id.tsx`、`$slug.tsx`）。  
+**禁止使用 `[param]` 括号命名法做动态路由**——例如 `src/pages/users/[id].tsx` 不会被识别为动态路由，构建产物会将 `[id]` 生成为字面量 URL 段 `users/[id]`，导致实际访问 `/users/123` 时没有任何路由匹配并白屏。
+
+| ✅ 正确 | ❌ 错误（会导致白屏） | 生成的路由路径 |
+|---------|----------------------|---------------|
+| `src/pages/$id.tsx` | `src/pages/[id].tsx` | `/users/:id` / `/users/[id]`（字面量，不可匹配） |
+| `src/pages/$id/edit.tsx` | `src/pages/[id]/edit.tsx` | `/users/:id/edit` / `/users/[id]/edit`（字面量，不可匹配） |
+| `src/pages/seo-blog/$slug.tsx` | `src/pages/seo-blog/[slug].tsx` | `/seo-blog/:slug` / `/seo-blog/[slug]`（字面量，不可匹配） |
+
+**验证要点**：构建后检查 `dist/umi.js`（生产模式）或 `src/.umi/core/route.tsx`（开发模式），目标动态路由的路径必须出现 `path:"resource/:id"` 格式，**不得出现 `path:"resource/[id]"`**。如果产物的路径是字面量 `[id]`，说明文件名仍使用了错误的括号命名法——立即改回 `$id`。
 
 ### 2. 结构设计原则
 
@@ -100,6 +113,29 @@ export default function IndexPage() {
 - 改完路由后按 `references/dev-server.md` 等热更新或重启，确认 `src/.umi/core/route.tsx` 里有新 path
 - 访问 `/` 确认自动跳到第一个有内容的页面，不空白
 - 点一遍左侧导航所有菜单项，确认每个都能跳到对应页面且选中态正确；有"点了没反应"的项必须修复
+
+### 详情页动态路由专项验证（强制）
+
+新增详情页（使用 `$id` 动态参数的页面，如 `seo-blog/$slug.tsx`）时，**仅检查 HTTP 200 是不够的**——静态服务会对任意 SPA 路由返回 `index.html` 导致所有路径都报 200。必须完成以下全部校验：
+
+1. **构建产物路由路径校验**：生产构建后检查 `dist/umi.js`（或用 grep 搜索路由表），目标动态路由的路径必须是 `path:"seo-blog/:slug"` 格式。**不得出现 `path:"seo-blog/[slug]"` 字面量路径**。如果路径是 `[slug]` 说明文件名仍使用了错误的括号命名法——必须改回 `$slug`。
+2. **直接访问验证**：对详情页执行直接 URL 访问测试，例如输入 `http://localhost:8000/seo-blog/b1`，确认页面正常渲染而非白屏。
+3. **刷新验证**：在详情页 `/seo-blog/b1` 强刷（Ctrl+Shift+R），确认页面完整渲染、数据正常加载（mock API 被正确调用）。
+4. **懒加载 chunk 验证**：确认详情页对应的懒加载 JS chunk 存在（如 `src__pages__seo-blog__slug.async.js`），通过 `verify-page --api` 脚本可命中 marker。
+5. **返回列表入口验证**：详情页必须有明确的"返回列表"按钮或链接，能回到列表页（如 `/seo-blog`）。
+
+> **核心规则**："路由返回 200" ≠ "详情页可用"。SPA fallback 会让所有未匹配路由都返回 index.html。只有通过构建产物路径检查和直接访问内容验证，才能确认详情页路由真正可用。
+
+### 验收案例（动态路由，强制覆盖）
+
+新增详情页时，以下每一条都必须通过：
+
+- [ ] 列表页点击标题/详情按钮，可进入详情页（如 `/seo-blog/b1`）；
+- [ ] 直接刷新详情页 URL（如 `/seo-blog/b1`）后，页面正常渲染且数据已加载；
+- [ ] 构建产物中的路由路径为 `seo-blog/:slug`（通配符形式，非字面量）；
+- [ ] 不存在字面量 `seo-blog/[slug]` 路径——检查 `dist/umi.js` 确认无此字符串；
+- [ ] 详情页的懒加载 chunk 存在并可加载；
+- [ ] 详情页有"返回列表"入口，可导航回列表页。
 
 ## ⚠️ 新增页面后内容区空白？
 
