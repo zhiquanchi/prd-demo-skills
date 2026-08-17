@@ -16,18 +16,16 @@ mock 的是**数据来源**，不是功能本身。交互逻辑（增删改、�
 
 ## mock 目录与文件
 
-项目根下新建 `mock/` 目录，按业务域拆文件（如 `mock/users.ts` + `mock/users.json`、`mock/orders.ts` + `mock/orders.json`）。Umi 约定 `mock/` 下所有 `.ts` 文件都是 mock 文件，默认导出对象，对象的每个 key 对应一个接口（**页面取数的 GET 数据本体必须落 `mock/<domain>.json`**，见下节；下面示例里的内联写法仅用于说明 key 结构，POST/PUT/DELETE 等操作型响应可直接内联）：
+项目根下新建 `mock/` 目录，按业务域拆文件（如 `mock/users.ts` + `mock/users.json`、`mock/orders.ts` + `mock/orders.json`）。Umi 约定 `mock/` 下所有 `.ts` 文件都是 mock 文件，默认导出对象，对象的每个 key 对应一个接口（**页面取数的 GET 数据本体必须落 `mock/<domain>.json`**，见下节；GET 接口从 JSON 导入，POST/PUT/DELETE 等操作型响应可直接内联）：
 
 ```ts
-// ./mock/users.ts
+// ./mock/users.ts —— GET 数据从 JSON 导入，操作型响应可内联
+import users from './users.json';
+
 export default {
-  // GET 可省略方法名
-  '/api/users': [
-    { id: 1, name: 'foo', role: 'admin' },
-    { id: 2, name: 'bar', role: 'user' },
-  ],
-  '/api/users/1': { id: 1, name: 'foo', role: 'admin' },
-  // 其它请求方法
+  // GET 接口：数据来自 JSON 文件（唯一数据源）
+  '/api/users': users,
+  // 其它请求方法：操作型响应可直接内联
   'POST /api/users': { result: 'ok' },
   'PUT /api/users/1': { id: 1, name: 'new-foo' },
   'DELETE /api/users/1': { result: 'ok' },

@@ -19,11 +19,11 @@
 
 - **全部小写，多单词用中划线（kebab-case）**：如 `/user-center`，不用驼峰（`userCenter`）或下划线（`user_center`）——即 `src/pages/user-center/`，文件名同理
 - **语义化命名，见名知意**，避免无意义缩写：用 `/user` 而非 `/u`、`/settings` 而非 `/set`
-- **REST 风格**：资源用名词，操作隐含在页面中（约定式路由下用 `$` 前缀目录做动态参数）：
+- **REST 风格**：资源用名词，操作隐含在页面中（约定式路由下用 `[参数名]` 括号命名法做动态参数，Umi 4 不再用旧版的 `$` 前缀）：
   - 列表：`src/pages/users/index.tsx` → `/users`
-  - 详情：`src/pages/users/$id.tsx` → `/users/:id`
+  - 详情：`src/pages/users/[id].tsx` → `/users/:id`
   - 新建：`src/pages/users/new.tsx` → `/users/new`
-  - 编辑：`src/pages/users/$id/edit.tsx` → `/users/:id/edit`
+  - 编辑：`src/pages/users/[id]/edit.tsx` → `/users/:id/edit`
 
 ### 2. 结构设计原则
 

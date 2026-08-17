@@ -45,10 +45,12 @@ git 本体不存在时，按下方「安装规则」征得用户同意后安装�
 
 ### git 操作白名单
 
-只允许 `git init`、`git add`、`git commit`、`git push`、`git pull`、`git merge`、`git tag` 七个写命令（含状态确认用的 `git status` / `git log` / `git diff` / `git tag -l` 等只读查询）。
+只允许以下写命令（含状态确认用的 `git status` / `git log` / `git diff` / `git tag -l` 等只读查询）：
+
+`git init`、`git add`、`git commit`、`git push`、`git pull`、`git merge`、`git tag`、`git tag -d`、`git push origin :refs/tags/<tag>`（后两条仅用于删除后重打 tag 的场景）
 
 - `git push`：每个任务提交后直接执行
-- `git tag`：仅在用户确认满意后按 `handover.md` 流程使用（含删除后重打的 `git tag -d` / `git push origin :refs/tags/<tag>` 场景）
+- `git tag` / `git tag -d` / `git push origin :refs/tags/<tag>`：仅在用户确认满意后按 `handover.md` 流程使用；`git tag -d` 与远端 tag 删除仅用于需要重打 tag 时，不得用于其他目的
 - `git pull` / `git merge`：**无冲突或冲突可自动合并时直接自动处理，无需逐次确认**，仅当产生 git 无法自动解决的冲突时，如实报告给用户，由用户决定处理方式，不擅自用禁止命令解决
 - 其余一切 git 操作（`reset`、`rebase`、`checkout`/`switch`、`stash`、`clean`、`branch -D`、`push --force`、`merge --abort` 等）全部禁止，无论任何理由都不得执行
 

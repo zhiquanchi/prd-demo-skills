@@ -47,6 +47,8 @@
 
    ```bash
    # POSIX（Linux/macOS）：先探测平台和架构，拼出正确的分发文件名
+   # VER 需使用当前最新 LTS 版本（查询：https://nodejs.org/dist/index.json 或 https://nodejs.org/en/download）
+   # 下方写死的版本号可能已过期，执行前请先确认最新 LTS
    VER=v24.18.0
    case "$(uname -s)" in
      Linux)  OS=linux;  EXT=tar.xz ;;
@@ -67,6 +69,8 @@
    ```
    ```powershell
    # Windows PowerShell（官方分发的是 .zip，注意不是 tar）
+   # VER 需使用当前最新 LTS 版本（查询：https://nodejs.org/en/download）
+   # 下方写死的版本号可能已过期，执行前请先确认最新 LTS
    $VER = "v24.18.0"
    $ARCH = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "x64" }
    New-Item -ItemType Directory -Force .runtime
