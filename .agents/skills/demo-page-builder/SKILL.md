@@ -41,9 +41,42 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 完整规则见 `references/whitelist.md`——依赖总闸、清单速查表、用户点名要求清单外组件时的拒绝流程，全部以该文件为准。写代码前必须确保所有用到的库都在 `assets/project-template/package.json` 的 `dependencies` 清单内，**禁止安装任何新依赖**。
 
+## 开工前置：工具检测与任务清单（强制）
+
+进入任何业务动作（含 Git 预检）之前，先完成本节两步；本节不因环境工具名称不同而豁免（与「Subagent 并行开发」的术语约定同一原则：按当前环境实际可用的工具名执行，工具名不同不构成豁免）。
+
+### 工具检测（开工第一步，只读）
+
+1. **盘点当前环境可用工具**，逐项确认并记录（探测方式：环境自带的工具枚举，或只读命令如 `command -v git node npm`；不装任何东西）：
+   - 终端执行工具（本 skill 语境统称 `shell`：VS Code Copilot / Codex 的 `run_in_terminal`、Claude Code 的 `Bash` 等）——缺失时初始化/构建/起服务/验证流程不可执行，先向用户说明缺口再继续
+   - git 是否可用：`command -v git`
+   - 文件编辑工具（统称 `apply_patch` 系列）
+   - subagent 派发工具（统称 `spawn_agent` 系列）
+   - 任务清单工具（统称 `todo_tool`：VS Code Copilot 的 `manage_todo_list`、Codex 的 `todo-list`、Claude Code 的 `TODO` 等）
+   - 浏览器/页面验证工具（截图、无头浏览器、HTTP 断言等，用于生效验证）
+   - 本 skill 自带脚本是否齐全：`scripts/posix/`（或 `scripts/windows/`）下的 `check-environment`、`init-project`、`verify-page`、`git-checkpoint`，以及 `scripts/serve-dist.js`、`scripts/validate-handover.mjs`
+2. **探测结果写进本轮第一条进度消息**（例如「工具检查：shell ✓ / git ✓ / apply_patch ✓ / spawn_agent ✓ / todo_tool ✓ / 浏览器 ✓」），按「进度上报」节格式输出，不额外刷屏。
+
+### 任务清单生成（开工第二步，强制）
+
+工具检测完成后、任何写入或 git 操作前，必须用当前环境的 `todo_tool` 创建任务清单（该工具缺失时用进度消息中的文字清单替代并注明）。清单必须包含以下条目，可再细化但**不得删减 git 相关项**：
+
+1. Git 预检与仓库初始化（按 `references/git.md`）
+2. 环境探测与项目初始化（`check-environment` + 需要时 `init-project` + `npm ci`；已是 Umi 工程则跳过此项）
+3. 任务拆分与 subagent 派发（存在多个独立单元时必须先派发 `spawn_agent`，见「Subagent 并行开发」）
+4. 页面实现（**每个业务改动拆成一个「实现 + git 提交」条目**：实现 → 跑「Git 检查点钩子」→ 提交 → 才允许标记该条 completed）
+5. 生效与验证（build / dev server / 静态服务 + `verify-page`，见 `references/dev-server.md`）
+6. 下发访问地址并等待用户确认（确认前不把本条标记完成，也不得进入交付步骤）
+7. 打 tag + 生成交接文档 + `validate-handover.mjs` 自检全 `[PASS]`（见「交付与确认」）
+
+规则：
+
+- **git 提交内嵌在清单里**：条目 4 默认已包含提交动作，禁止出现「实现完成但未提交」的 completed 项；也禁止把全部提交推迟到用户确认后
+- 每完成一项立即用 `todo_tool` 更新状态，并照「进度上报」报一行进度；条目 6、7 在用户确认前保持 not-started / in-progress，不提前标记完成
+
 ## 工作流程（必须按顺序）
 
-进入下列步骤前，先完成下方「Git 预检」节：项目一开始（最迟第一个页面动工前）就完成 git 检查与仓库初始化，**不拖到打 tag / 生成交接文档时才 `git init`**。
+进入下列步骤前，先完成上方「开工前置」节（工具检测 + 任务清单）与下方「Git 预检」节：项目一开始（最迟第一个页面动工前）就完成 git 检查与仓库初始化，**不拖到打 tag / 生成交接文档时才 `git init`**；此后每个阶段结束运行「Git 检查点钩子」（见「Git 规则」节），`checkpoint` 非 `clean` 时先提交再继续。
 
 1. **先搜后用**：写代码前，先在对应组件库中搜索所需组件是否已存在、叫什么、用法是什么：
    - 优先调用本机已有的 `ant-design` / `antd` skill 查 API、props、demo
@@ -165,6 +198,16 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 ## Git 规则（强制）
 
 完整规则见 `references/git.md`——Git 预检（项目一开始执行）、安装、初始化、提交频率与推送、操作白名单、环境权限申请，全部以该文件为准。核心要点：项目一开始就完成 git 初始化与配置，每个业务改动单独提交并推送，提交信息用中文 `类型: 简述` 格式，仅使用白名单内的 git 命令。
+
+### Git 检查点钩子（阶段强制）
+
+每个阶段结束时（项目初始化完成、每个业务改动生效、每个 subagent 单元验收、下发地址后、生成交接文档前）必须运行本 skill 的检查点钩子脚本，检查当前项目目录的 git 提交状态：
+
+- **运行方式**：`bash scripts/posix/git-checkpoint.sh <项目目录>`（POSIX）；Windows 用 `scripts/windows/git-checkpoint.ps1`（PowerShell；不提供 cmd `.bat` 版本，cmd 的代码页机制无法可靠解析脚本内中文提示，Windows 环境一律用 PowerShell 版）
+- **退出码语义**：`0`=`checkpoint=clean`（全部已提交，PASS）；`1`=`checkpoint=dirty`（有未提交改动，FAIL）；`20`=git 缺失；`21`=尚未 `git init`
+- **`dirty`（退出码 1）**：先 `git add -A && git commit`（提交信息 `类型: 简述`）再继续，不许带着未提交改动进入下一阶段，也不许以「待用户确认后一起提交」为由跳过
+- **`20` / `21`**：Git 预检完成后的任何阶段出现即 FAIL——`20` 按 `references/git.md` 安装 git（唯一征询点）；`21` 立即补做预检初始化与首次提交
+- **检查点不过时**：不得把对应 `todo_tool` 条目标记为 completed，不得向用户报告完成
 
 ## 产出要求
 
