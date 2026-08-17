@@ -93,21 +93,32 @@ function main() {
   const hasFlowchart = mermaidBlocks.some((b) => /^\s*flowchart\s+(TD|TB|BT|LR|RL)/m.test(b[1]));
   check(hasFlowchart, 'Mermaid 含 flowchart', mermaidBlocks.length === 0 ? '无 mermaid 块' : undefined);
 
-  /* ---------- 4. Design & UX 有独立用户流程 ---------- */
+  /* ---------- 4. Design & UX 有独立用户流程（每功能一条） ---------- */
   const dxIdx = normH1.findIndex((h) => h === '设计与用户体验');
   const dxStart = dxIdx >= 0 ? findSectionStart(normH1, lines, dxIdx) : -1;
   const fnIdx = normH1.findIndex((h) => h === '功能说明');
   const fnStart = fnIdx >= 0 ? findSectionStart(normH1, lines, fnIdx) : -1;
   const dxContent = dxStart >= 0 ? lines.slice(dxStart, fnStart >= 0 ? fnStart : lines.length).join('\n') : '';
+  const fnSection = fnStart >= 0 ? lines.slice(fnStart).join('\n') : '';
+  const featureBlocks = splitFeatures(fnSection);
   check(
     dxStart >= 0 && /用户流程|User Flow|user flow/i.test(dxContent),
     'Design & UX 含用户流程小节',
     dxStart < 0 ? '未找到该章节' : undefined,
   );
+  // 用户流程与功能一一对应：每条流程标题必须引用对应用例编号（UC-XXX-NN）
+  const featureIds = featureBlocks
+    .map((fb) => { const m = fb.match(/（(UC-[A-Za-z]+-\d+)）/); return m ? m[1] : null; })
+    .filter(Boolean);
+  const dxFlowIds = [...dxContent.matchAll(/用户流程[：:].+?（(UC-[A-Za-z]+-\d+)）/g)].map((m) => m[1]);
+  const missingFlows = featureIds.filter((id) => !dxFlowIds.includes(id));
+  check(
+    dxStart >= 0 && missingFlows.length === 0,
+    '用户流程与功能一一对应（每功能一条，标题含用例编号）',
+    missingFlows.length ? `缺流程：${missingFlows.join('、')}` : undefined,
+  );
 
   /* ---------- 5. 每个功能含完整用例字段 ---------- */
-  const fnSection = fnStart >= 0 ? lines.slice(fnStart).join('\n') : '';
-  const featureBlocks = splitFeatures(fnSection);
   check(featureBlocks.length >= 1, '功能说明存在功能', `共识别 ${featureBlocks.length} 个功能`);
   featureBlocks.forEach((fb, i) => {
     const idMatch = fb.match(/（([A-Za-z]+-\d+)）/);
