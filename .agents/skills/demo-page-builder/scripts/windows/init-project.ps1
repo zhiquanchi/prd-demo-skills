@@ -58,6 +58,7 @@ Copy-Item -LiteralPath (Join-Path $templateDir "package.json") -Destination (Joi
 Copy-Item -LiteralPath (Join-Path $templateDir "package-lock.json") -Destination (Join-Path $ProjectDir "package-lock.json")
 New-Item -ItemType Directory -Force -Path (Join-Path $ProjectDir "scripts") | Out-Null
 Copy-Item -LiteralPath (Join-Path $templateDir "scripts/serve-dist.js") -Destination (Join-Path $ProjectDir "scripts/serve-dist.js")
+Copy-Item -LiteralPath (Join-Path $templateDir "scripts/validate-handover.mjs") -Destination (Join-Path $ProjectDir "scripts/validate-handover.mjs")
 
 $env:PKG_FILE = Join-Path $ProjectDir "package.json"
 $env:LOCK_FILE = Join-Path $ProjectDir "package-lock.json"

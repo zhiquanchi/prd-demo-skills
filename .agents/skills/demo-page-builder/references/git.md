@@ -45,7 +45,7 @@ git 本体不存在时，按下方「安装规则」征得用户同意后安装�
 
 ### git 操作白名单
 
-只允许以下写命令（含状态确认用的 `git status` / `git log` / `git diff` / `git tag -l` 等只读查询）：
+只允许以下写命令（含状态确认用的 `git status` / `git log` / `git diff` / `git show` / `git tag -l` 等只读查询）：
 
 `git init`、`git add`、`git commit`、`git push`、`git pull`、`git merge`、`git tag`、`git tag -d`、`git push origin :refs/tags/<tag>`（后两条仅用于删除后重打 tag 的场景）
 

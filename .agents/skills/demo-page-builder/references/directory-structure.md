@@ -48,6 +48,7 @@
 |---|---|---|
 | `package.json` | 初始化时 | 由 `assets/project-template/` 复制，`name` 改成当前目录名 |
 | `scripts/serve-dist.js` | 初始化时 | WSL 静态服务用，由模板复制 |
+| `scripts/validate-handover.mjs` | 初始化时 | 交接文档机器自检用，由模板复制；项目里缺失时从 skill `scripts/` 或模板重新复制，禁止退化为手工检查 |
 | `.gitignore` | 初始化时 | **白名单模式**：默认忽略一切，只保留必要文件/目录（内容见下节），由初始化脚本生成 |
 | `src/pages/` | 写第一个页面时 | 约定式路由入口，页面文件（如 `src/pages/index.tsx`）随页面一起建；`pages/404.tsx` 需要兜底页时才建 |
 | `mock/` | 页面需要示例数据时 | 一个业务域一对文件：`<domain>.json`（数据本体，唯一数据源）+ `<domain>.ts`（导出 Umi Mock 接口），细则见 `mock.md`；本项目 demo 几乎必建 |

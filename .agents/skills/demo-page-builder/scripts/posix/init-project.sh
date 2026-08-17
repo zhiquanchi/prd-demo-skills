@@ -32,6 +32,7 @@ cp "$template_dir/package.json" "$project_dir/package.json"
 cp "$template_dir/package-lock.json" "$project_dir/package-lock.json"
 mkdir -p "$project_dir/scripts"
 cp "$template_dir/scripts/serve-dist.js" "$project_dir/scripts/serve-dist.js"
+cp "$template_dir/scripts/validate-handover.mjs" "$project_dir/scripts/validate-handover.mjs"
 
 PKG_FILE="$project_dir/package.json" LOCK_FILE="$project_dir/package-lock.json" PROJECT_NAME="$project_name" node -e '
 const fs = require("fs");

@@ -92,15 +92,16 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 - **每一个业务改动（页面、小功能、样式调整）完成后**，先让新改动生效（dev 模式等热更新或重启，WSL 静态模式重新 `npm run build`），**改动生效后的第一条消息就把访问地址（默认 http://localhost:8000/<路由>）发给用户确认效果**；没经过用户在浏览器里确认前，不把任务标记为完成
 - **硬性顺序：地址下发优先于内部验证**——生效后的第一条消息就发地址，**不允许先做内部验证（verify-page、无头浏览器、构建产物检查、跑测试等）再发地址**；验证是后台动作，可在发地址后并行进行，不能替代用户确认，也不能成为延迟发地址的理由
 - 用户反馈不满意 → 改 → 再生效 → **再第一时间把地址/效果发给用户** → 再确认，循环直到用户认可
-- **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，**新增页面与复刻 demo 均适用**），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略
+- **用户明确认可后（"可以了/满意/就这样"），打 git tag 并生成与 tag 同名的交接文档**（`docs/handover/<tag名>.md`，**新增页面与复刻 demo 均适用**），完整流程见 `references/handover.md`；这是交付的收尾动作，不可省略；**一轮认可覆盖多个页面时按页面拆分：每个页面一个 tag + 一份同名交接文档**，禁止把多个页面塞进同一份文档（拆分细则见 `references/handover.md` 的「多页面交付：按页面拆分」）
 
 ### 交接文档生成（硬性闭环，先模板后校验）
 
 交接文档的详细规则、tag 命名、写作要求见 `references/handover.md`。这里强调硬性闭环：任何人生成交接文档都必须按三步走，任一检查项不通过都不得向用户报告完成。
 
 1. **生成前必读（缺一不可）**：`references/handover.md`、`references/handover.template.md`、`references/mermaid.md`
-2. **按模板生成**：以 `handover.template.md` 为骨架，保持五个一级章节不变，每个功能填全 0–8 用例字段
-3. **生成后自检（硬性）**：运行 `node scripts/validate-handover.mjs docs/handover/<tag名>.md`，全部 `[PASS]` 才能继续提交、打 tag、推 tag；校验不通过时不得跳过
+2. **生成前存量核对（硬性）**：先在 git 中确认交付涉及页面与历史交付页面是否已有对应交接文档（`git tag -l 'deliver-*'` + `git log --oneline --all -- docs/handover/`），缺失的一并补全、tag 在但文档丢的先用 `git show` 找回，细则见 `references/handover.md` 的「存量核对与补全」
+3. **按模板生成**：以 `handover.template.md` 为骨架，保持五个一级章节不变，每个功能填全 0–8 用例字段；**一份文档只写一个页面**——多页面交付按页面拆成多份、逐份生成逐份校验
+4. **生成后自检（硬性）**：运行 `node scripts/validate-handover.mjs docs/handover/<tag名>.md`，全部 `[PASS]` 才能继续提交、打 tag、推 tag；校验不通过时不得跳过；项目 `scripts/` 缺该脚本时先从 skill `scripts/` 复制进来再跑，**禁止以"脚本不存在"为由退化为手工检查**
 
 ## 进度上报（强制，防止用户误以为卡死）
 

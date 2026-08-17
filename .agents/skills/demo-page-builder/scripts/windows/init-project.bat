@@ -58,6 +58,11 @@ if errorlevel 1 (
     echo Failed to copy serve-dist.js template. 1>&2
     exit /b 1
 )
+copy /y "%TEMPLATE_DIR%\scripts\validate-handover.mjs" "%PROJECT_DIR%\scripts\validate-handover.mjs" >nul
+if errorlevel 1 (
+    echo Failed to copy validate-handover.mjs template. 1>&2
+    exit /b 1
+)
 
 set "RAW_NAME="
 for %%i in ("%PROJECT_DIR%") do set "RAW_NAME=%%~nxi"
