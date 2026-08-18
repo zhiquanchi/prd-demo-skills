@@ -59,7 +59,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 2. 环境探测与项目初始化（`check-environment` + 需要时 `init-project` + `npm ci`；已是 Umi 工程则跳过此项）
 3. 任务拆分与 subagent 派发（存在多个独立单元时必须先派发 `spawn_agent`，见「Subagent 并行开发」）
 4. 页面实现（**每个业务改动拆成一个「实现 + git 提交」条目**：实现 → 跑「Git 检查点钩子」→ 提交 → 才允许标记该条 completed）
-5. 生效与验证（build / dev server / 静态服务 + `verify-page`，见 `references/dev-server.md`）
+5. 生效与验证（build / dev server / 静态服务 + `verify-page`，见 `references/dev-server.md`；**两个必须重启服务的触发条件并列记牢**——模式 A 新增 `mock/*.json` 文件须重启静态服务、模式 B 新增 `src/pages` 目录须重启 dev server，命中任一都要先重启并重新验证，完成前不得标记本条 completed）
 6. 下发访问地址并等待用户确认（确认前不把本条标记完成，也不得进入交付步骤）
 7. 打 tag + 生成交接文档 + `validate-handover.mjs` 自检全 `[PASS]`（见「交付与确认」）
 
@@ -102,7 +102,10 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
    - 禁止凭记忆硬写不熟悉的组件 API；查到再写
 2. **选型**：按上表定位到组件库 → 定位到具体组件 → 确认当前项目装的大版本（antd 是 v5，ProComponents v2，X v2）与该版本文档一致
 3. **实现**：先执行「Subagent 并行开发」的编辑前硬门禁；门禁完成前禁止编辑业务代码。页面写到 `src/pages/`（Umi 约定式路由，路径命名用 kebab-case + REST 风格、按 `references/routes.md` 的「路径命名与结构规范」执行），样式用 antd 体系（主题 token、`antd-style`），不要引入白名单外的依赖；首页空白跳转、新增页面的导航绑定按 `references/routes.md` 执行，**页面所需示例数据一律用 Umi mock、写入 `mock/` 目录，不放 UI 组件里，按 `references/mock.md` 执行**；**可交互元素的实现规范（事件绑定写法、受控组件 value/onChange 成对、事件冒泡、列表 key 等防「点了没反应」硬规则）见 `references/interactivity.md`，交付前逐条自查**；编码环节能并行拆分的按下方「Subagent 并行开发」用多个 subagent 并行实现
-4. **生效与验证**：按参考文档 `references/dev-server.md` 执行（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新），并用懒加载 chunk 验证页面真的打进产物，页面用到 mock 接口时用 `--api` 逐个断言返回合法 JSON（静态模式下尤其必要，防止 SPA fallback 把 `/api/*` 当页面返回 `index.html` 导致白屏）——不许"写完就报完成"
+4. **生效与验证（硬性门禁，任一不满足不得宣告页面完成）**：按参考文档 `references/dev-server.md` 执行（先判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新），并用懒加载 chunk 验证页面真的打进产物——不许"写完就报完成"。三条硬性门禁：
+   - **新增过 `mock/*.json` 必须重启静态服务（模式 A）**：`serve-dist.js` 的 mock 路由表只在启动时扫描注册，新增 JSON 文件不重启就是 404——按 `references/dev-server.md` 检测端口 → kill 旧进程 → `node scripts/serve-dist.js` 重启，并逐条核对启动日志的 Mock API 列表覆盖页面全部依赖接口
+   - **页面用到 mock 接口时必须逐个 `--api` 断言**：用 `<skill目录>/scripts/posix/verify-page.sh --mode dist --api "/api/<接口>:<字段>"`（Windows 用 `scripts/windows/verify-page.ps1` 等价参数）对每个依赖接口断言 HTTP 200 + JSON 可解析 + 必需字段（静态模式下尤其必要，防止 SPA fallback 把 `/api/*` 当页面返回 `index.html` 导致白屏）；任一 FAIL 不得宣告页面完成
+   - **完成判据三项全齐才算生效**：构建成功 + 运行中的服务确实能返回每个依赖接口的合法 JSON + 页面 HTTP 200，缺一项即未生效、不得报完成
 5. **antd v5 注意**：`@ant-design/x` v2 的 peer 要求 antd 6，本项目是 antd 5 + `--legacy-peer-deps` 装上的。仅当使用 X 组件且**运行时报错**时，才按 `references/environment.md` 的"安装依赖"节给出的根治方案（升 antd 6 或降 X 1.x）请用户决策——这是阻塞项，拿到用户决定前不要绕过；未报错则正常使用，不必提前处理
 
 ## Subagent 并行开发（编辑前硬门禁，强制）
