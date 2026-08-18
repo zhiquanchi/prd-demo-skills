@@ -75,7 +75,7 @@ node scripts/serve-dist.js   # 长驻进程，优先用后台任务启动；若�
 1. 改完代码执行 `npm run build`（max build），等构建完成。
 2. 把地址发给用户，请用户强刷（Ctrl+Shift+R）确认效果。
 3. 服务不用重启，没有热更新，也不需要 tail 日志等 Compiled。构建较慢时按 SKILL.md 的进度上报规则间断报进度。
-4. 构建后页面没变化：先确认构建确实完成、用户已强刷，再做其他排查，不做无效排查。
+4. 构建后页面没变化：先确认构建确实完成、用户已强刷，再做其他排查，不做无效排查；随后按 `references/interactivity.md` 的「四层排查」逐层定位（源码→构建→服务→浏览器）。
 
 ### 验证页面真的生效（模式 A）
 
@@ -89,6 +89,7 @@ node scripts/serve-dist.js   # 长驻进程，优先用后台任务启动；若�
 `--api` 格式为 `/api/<name>[:field[,field...]]`，字段列表对应页面的数据契约（如 `rows`、`total`）；不写字段则只校验"HTTP 200 + JSON Content-Type + 可解析"。退出码非 0 即对应项失败（9=API 非 200、10=Content-Type 不是 JSON、11=JSON 非法或缺字段），其中 10/11 通常意味着 `/api/*` 落进了 SPA fallback 返回了 `index.html`——回看上一节的等价路由规则排查（`mock/<name>.json` 是否存在、serve-dist 是否需要重启）。端口不是 8000 时加 `--port`，不在项目根目录时加 `--project`。
 
 - **`--marker` 必须用 ASCII 特征串**：`max build` 会把产物里的中文字符串转义成 `\uXXXX`，中文 marker 在 `dist/` 的 JS 里永远搜不到（必报 exit 5，易误判为页面没打进产物）。选页面独有的 ASCII 内容做 marker——取数路径（如 `/api/keywords`）、英文文案、组件/类名等。
+- **单一 marker 是页面级单点验证，不能证明多项改动全部生效**：一次改了多个元素（交互、样式、文案）时，一个 marker 命中只说明页面进了产物，不代表每个改动都写进了代码。多项改动须按 `SKILL.md`「交付与确认 → 业务改动」的逐项核对规则执行：每项在源码确认对应代码存在，能提炼特征串的每项一个独立 marker，关键交互用浏览器逐项操作确认——逐项全过才算生效。
 
 通过时输出四类结果，缺一不可：
 
@@ -169,7 +170,7 @@ scripts/windows/verify-page.ps1 -Mode dev -Route /<路由> -Marker "<页面里�
 - 页面没变化时按所选模式排查：
   - 模式 B（dev server）：新建目录/新路由后先重启 server（watcher 经常监听不到新目录）
   - 模式 A（WSL 静态服务）：先确认构建完成、用户已强刷；**骨架闪现后白屏的，先查 mock API 是否返回了 `index.html`**（SPA fallback 接住了 `/api/*`，按「Mock API 等价路由」节排查），不要先怀疑页面代码
-  - 以上做过仍无变化，再回头排查代码，不做无效排查
+  - 以上做过仍无变化，再回头排查代码，按 `references/interactivity.md` 的「四层排查」从源码层开始逐层定位（事件绑定、受控组件、事件冒泡、列表 key 等交互实现硬规则也在该文件），不做无效排查
 
 ## 已知现象（两种模式通用）
 

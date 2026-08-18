@@ -60,6 +60,7 @@ cp -r /tmp/prd-demo-skills/.agents/skills /path/to/your-project/.agents/
     │   ├── environment.md            # node runtime 探测与安装、受阻处理、依赖安装的细则
     │   ├── dev-server.md             # 起服务与页面生效验证的细则（启动前检查 8000 端口被本任务旧进程占用则 kill 复用；WSL：生产构建+静态服务；其他环境：dev server 热更新）
     │   ├── routes.md                 # 路由与导航细则：路径命名与结构规范（kebab-case + REST）、首页空白自动跳转、新增页面必须绑定可点击入口、动态路由 $param 规则
+    │   ├── interactivity.md         # 交互实现与「不生效」排查细则：事件绑定/受控组件/事件冒泡/列表 key 等硬规则、元素与行为解耦（同一行为收敛为单一实现）、源码→构建→服务→浏览器四层排查清单
     │   ├── directory-structure.md    # Umi 官方目录结构对照与按需创建规则、白名单模式 .gitignore
     │   ├── layout-patterns.md        # Umi Max 全局布局模式：<Outlet/> 而非 {children}（用错会内容区空白）
     │   ├── common-components.md      # 公共组件细则：侧边栏等跨页面布局组件必须提取为公共组件复用，样式不改、禁止重复侧边栏
