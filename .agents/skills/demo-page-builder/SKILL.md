@@ -7,25 +7,6 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分多份参考文档（与本文件同级 `references/` 目录下）：**组件库白名单与清单外拒绝流程见 `references/whitelist.md`**，环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新；服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行；服务管理规则见同文件）见 `references/dev-server.md`，路由路径命名（kebab-case + REST 风格）与结构规范、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，**生成/复刻时的示例数据一律用 Umi mock、写入 `mock/` 目录而不放 UI 组件里见 `references/mock.md`**，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，**Umi Max 全局布局模式与 `<Outlet/>` 正确用法见 `references/layout-patterns.md`**，Git 操作全套规则（预检/提交/白名单/权限）见 `references/git.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`，为页面/功能编写业务说明（用例，正常流程+异常流程+业务规则）见 `references/use-cases.md`，生成 Mermaid 图（交接文档流程图、用户流程等）见 `references/mermaid.md`，**新项目与新增功能的目录组织以 Umi 官方目录结构为准、按需创建见 `references/directory-structure.md`**。
 
-## 目录结构（Umi 官方约定，按需创建）
-
-初始化项目与后续新增功能时的目录组织，**以 Umi 官方目录结构（https://umijs.org/docs/guides/directory-structure）为准**，完整对照表与创建时机见 `references/directory-structure.md`。核心原则：
-
-- **按需创建，不需要的目录不要新建**：空目录不预建、不提交 git，用到该类文件时才连文件一起创建目录（如写第一个页面才建 `src/pages/`，需要示例数据才建 `mock/`）
-- `dist/`、`src/.umi/`、`src/.umi-production/` 是构建/临时产物，**永不手动创建**，已被 `.gitignore` 忽略
-- 本项目约定式路由零配置即可跑，`.umirc.ts` / `config/config.ts` 默认都不建，需要配置时优先 `.umirc.ts`
-
-## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
-
-用户提供了参考物（HTML 文件或代码片段、页面截图、设计稿、线上页面 URL 等）并要求"照这个做 / 复刻 / 还原"时，**不要直接进入常规工作流程**，先按 `references/replicate.md` 执行：
-
-1. **先理解原稿**：拆解参考物，产出复刻清单（区块划分、精确配色、字体间距、交互、文案）
-2. **组件映射**：原稿元素全部映射到白名单组件，清单外一律禁止
-3. **一比一复刻**：布局、配色（精确色值）、文案逐字还原，样式用 antd-style
-4. **对比验证**：截图与原稿并排核对，不像就改到用户确认像为止
-
-复刻场景的其余规则（白名单、git 提交、交付确认）与常规任务完全一致——用户确认满意后同样打 git tag 并生成交接文档，交接文档要求（使用说明 + 用户操作流程图 + DOM 树与组件说明 + 设计与用户体验 + 功能说明 + 对话过程摘要）与新增页面一视同仁。
-
 ## 项目定位（第一优先级，先于一切流程）
 
 - **项目根 = 用户会话的当前工作目录**（pwd）。所有文件写入、依赖安装、dev server、git 操作都只在当前工作目录下进行。
@@ -36,10 +17,6 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
   3. Umi Max 约定式路由零配置即可跑，不需要额外配置文件
   4. 后续目录（`src/pages/`、`mock/`、`src/layouts/` 等）按 `references/directory-structure.md` 的按需创建规则，随首个对应文件一起创建，不预建空目录
 - 用户明确指定了其他目录时，以用户指定为准。
-
-## 组件库白名单（严格限制，禁止引入其他组件库）
-
-完整规则见 `references/whitelist.md`——依赖总闸、清单速查表、用户点名要求清单外组件时的拒绝流程，全部以该文件为准。写代码前必须确保所有用到的库都在 `assets/project-template/package.json` 的 `dependencies` 清单内，**禁止安装任何新依赖**。
 
 ## 开工前置：工具检测与任务清单（强制）
 
@@ -73,6 +50,29 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 - **git 提交内嵌在清单里**：条目 4 默认已包含提交动作，禁止出现「实现完成但未提交」的 completed 项；也禁止把全部提交推迟到用户确认后
 - 每完成一项立即用 `todo_tool` 更新状态，并照「进度上报」报一行进度；条目 6、7 在用户确认前保持 not-started / in-progress，不提前标记完成
+
+## 目录结构（Umi 官方约定，按需创建）
+
+初始化项目与后续新增功能时的目录组织，**以 Umi 官方目录结构（https://umijs.org/docs/guides/directory-structure）为准**，完整对照表与创建时机见 `references/directory-structure.md`。核心原则：
+
+- **按需创建，不需要的目录不要新建**：空目录不预建、不提交 git，用到该类文件时才连文件一起创建目录（如写第一个页面才建 `src/pages/`，需要示例数据才建 `mock/`）
+- `dist/`、`src/.umi/`、`src/.umi-production/` 是构建/临时产物，**永不手动创建**，已被 `.gitignore` 忽略
+- 本项目约定式路由零配置即可跑，`.umirc.ts` / `config/config.ts` 默认都不建，需要配置时优先 `.umirc.ts`
+
+## 组件库白名单（严格限制，禁止引入其他组件库）
+
+完整规则见 `references/whitelist.md`——依赖总闸、清单速查表、用户点名要求清单外组件时的拒绝流程，全部以该文件为准。写代码前必须确保所有用到的库都在 `assets/project-template/package.json` 的 `dependencies` 清单内，**禁止安装任何新依赖**。
+
+## 参考原型复刻（用户提供了 demo / 原型时，先于常规流程）
+
+用户提供了参考物（HTML 文件或代码片段、页面截图、设计稿、线上页面 URL 等）并要求"照这个做 / 复刻 / 还原"时，**不要直接进入常规工作流程**，先按 `references/replicate.md` 执行：
+
+1. **先理解原稿**：拆解参考物，产出复刻清单（区块划分、精确配色、字体间距、交互、文案）
+2. **组件映射**：原稿元素全部映射到白名单组件，清单外一律禁止
+3. **一比一复刻**：布局、配色（精确色值）、文案逐字还原，样式用 antd-style
+4. **对比验证**：截图与原稿并排核对，不像就改到用户确认像为止
+
+复刻场景的其余规则（白名单、git 提交、交付确认）与常规任务完全一致——用户确认满意后同样打 git tag 并生成交接文档，交接文档要求（使用说明 + 用户操作流程图 + DOM 树与组件说明 + 设计与用户体验 + 功能说明 + 对话过程摘要）与新增页面一视同仁。
 
 ## 工作流程（必须按顺序）
 
