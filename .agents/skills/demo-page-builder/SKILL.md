@@ -5,7 +5,23 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 # Demo 页面构建总控
 
-一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。负责组件库选型和流程编排；细则分多份参考文档（与本文件同级 `references/` 目录下）：**组件库白名单与清单外拒绝流程见 `references/whitelist.md`**，环境准备（node runtime、依赖安装）见 `references/environment.md`，起服务与页面生效验证（启动前检查 8000 端口被本任务旧进程占用则 kill 复用，再判断环境：WSL 用生产构建+静态服务，其他环境用 dev server 热更新；服务优先用后台任务启动，若无后台任务功能则用 subagent 后台运行；服务管理规则见同文件）见 `references/dev-server.md`，路由路径命名（kebab-case + REST 风格）与结构规范、首页跳转与左侧导航绑定见 `references/routes.md`，用户提供了 HTML/截图/原型需要复刻时见 `references/replicate.md`，**生成/复刻时的示例数据一律用 Umi mock、写入 `mock/` 目录而不放 UI 组件里见 `references/mock.md`**，侧边栏等跨页面布局组件的公共组件规则见 `references/common-components.md`，**Umi Max 全局布局模式与 `<Outlet/>` 正确用法见 `references/layout-patterns.md`**，Git 操作全套规则（预检/提交/白名单/权限）见 `references/git.md`，用户确认满意后打 git tag 与生成交接文档见 `references/handover.md`，为页面/功能编写业务说明（用例，正常流程+异常流程+业务规则）见 `references/use-cases.md`，生成 Mermaid 图（交接文档流程图、用户流程等）见 `references/mermaid.md`，**新项目与新增功能的目录组织以 Umi 官方目录结构为准、按需创建见 `references/directory-structure.md`**。
+一切"生成 demo / 画页面 / 生成 HTML"类任务的父 skill。本文件负责组件库选型、流程编排与跨阶段硬性规则，细则全部下沉到同级 `references/` 目录，按下表索引：
+
+| 场景 | 参考文档 |
+|---|---|
+| 组件库白名单与清单外拒绝流程 | `references/whitelist.md` |
+| 环境准备（node runtime 探测、依赖安装、受阻处理） | `references/environment.md` |
+| 起服务与页面生效验证（端口检查；WSL=生产构建+静态服务 / 其他环境=dev 热更新；verify-page、服务管理） | `references/dev-server.md` |
+| 路由路径命名（kebab-case+REST）与结构规范、首页跳转与左侧导航绑定 | `references/routes.md` |
+| 用户提供了 HTML/截图/原型需要复刻 | `references/replicate.md` |
+| 示例数据用 Umi mock（写入 `mock/`，不放 UI 组件里） | `references/mock.md` |
+| 侧边栏等跨页面布局组件的公共组件规则 | `references/common-components.md` |
+| Umi Max 全局布局模式与 `<Outlet/>` 正确用法 | `references/layout-patterns.md` |
+| Git 操作全套规则（预检/提交/白名单/权限） | `references/git.md` |
+| 用户确认满意后打 git tag 与生成交接文档 | `references/handover.md` |
+| 业务说明（用例：正常流程+异常流程+业务规则）撰写 | `references/use-cases.md` |
+| Mermaid 图生成（交接文档流程图、用户流程） | `references/mermaid.md` |
+| 目录组织（以 Umi 官方目录结构为准、按需创建） | `references/directory-structure.md` |
 
 ## 项目定位（第一优先级，先于一切流程）
 
@@ -136,14 +152,11 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 
 ## 示例数据用 Umi Mock（强制）
 
-生成 demo 和复刻原型时，页面需要展示/操作的**示例数据一律使用 Umi 的 mock 功能**（官方文档：https://umijs.org/docs/guides/mock），**写入项目根 `mock/` 目录，不写进 UI 组件**。细则见 `references/mock.md`。
+生成 demo 和复刻原型时，页面需要展示/操作的**示例数据一律使用 Umi 的 mock 功能**（官方文档：https://umijs.org/docs/guides/mock），**写入项目根 `mock/` 目录（`mock/<domain>.json` 唯一数据源 + `mock/<domain>.ts` 导出接口），不写进 UI 组件**，页面用 `@umijs/max` 内置 `request` 异步取数且必须带运行时格式校验与 `.catch()` 兜底防白屏。完整细则（数据落盘、取数兜底示例、静态服务等价路由、mockjs 随机数据、复刻场景取数）见 `references/mock.md` 与 `references/dev-server.md`。三条硬规则：
 
-- **数据放哪**：示例数据（列表、表格、卡片、图表、表单回填、详情等）统一放 `mock/<domain>.json`（数据本体、唯一数据源）+ `mock/<domain>.ts`（导入 JSON 导出 Umi Mock 接口）；**禁止把数据硬编码在 `src/pages/**`、`src/components/**` 里**（页面里写 `const data = [...]`、或 import 一个放在 `src/` 下的数据文件都不行），也禁止在静态服务脚本里重复硬编码
-- **页面怎么取数**：用 Umi Max 内置的 `request`（从 `@umijs/max` 导入，零配置免装依赖）异步请求 mock 接口；`mock/` 里的接口路径与页面 `request` 的路径必须一致；**取数必须带运行时格式校验与 `.catch()` 兜底**——接口失败或响应格式不符时保留安全初始状态（列表初始 `[]`）并显示可理解的错误提示，**不得把 `undefined` 写进后续会 `.filter()`/`.map()` 的 state 导致白屏**
-- **生产静态服务（WSL 模式 A）必须提供等价 API 路由**：Umi Mock 只在 dev 模式生效，静态服务 `scripts/serve-dist.js` 会自动把 `mock/<name>.json` 注册为 `GET /api/<name>`，未注册的 `/api/*` 一律 404 JSON、绝不 SPA fallback 返回 `index.html`（否则页面把 HTML 当 JSON 解析即白屏）；新增 mock JSON 文件后需重启服务，重启前先检测端口占用、停掉本项目旧进程，重启后用 `--api` 重新断言返回的是新数据 JSON。静态模式白屏（构建、静态服务、首屏、mock API 成功返回、接口异常兜底）是必测回归场景，细则见 `references/mock.md` 与 `references/dev-server.md`
-- **mock 的是数据来源，不是功能**：交互逻辑（增删改、搜索、筛选、排序、分页、表单校验）仍真实实现、真实生效，只是数据来自 mock 接口，不能因为 mock 就跳过功能
-- **批量/随机数据**：可用项目模板 `package.json` 里已有的 `mockjs` 生成，不额外装包
-- **复刻场景**：原稿里的真实文案/数据可直接作为 mock 返回值，规则同样适用（见 `references/replicate.md`）
+- **数据只放 `mock/`**：禁止硬编码在 `src/pages/**`、`src/components/**`，也禁止在静态服务脚本里重复硬编码；`mock/` 里的接口路径与页面 `request` 路径必须一致
+- **mock 的是数据来源，不是功能**：增删改、搜索、筛选、排序、分页、表单校验等交互逻辑仍真实实现、真实生效
+- **WSL 静态服务（模式 A）的等价 API 路由与白屏回归是必测项**：`scripts/serve-dist.js` 自动把 `mock/<name>.json` 注册为 `GET /api/<name>`，未注册的 `/api/*` 一律 404 JSON、绝不 SPA fallback；新增 mock JSON 后需重启服务并用 `--api` 重新断言
 
 ## 业务说明（用例）（按需）
 
@@ -204,7 +217,7 @@ description: 生成 demo、画页面、做界面、生成 HTML/原型/落地页/
 每个阶段结束时（项目初始化完成、每个业务改动生效、每个 subagent 单元验收、下发地址后、生成交接文档前）必须运行本 skill 的检查点钩子脚本，检查当前项目目录的 git 提交状态：
 
 - **运行方式**：`bash scripts/posix/git-checkpoint.sh <项目目录>`（POSIX）；Windows 用 `scripts/windows/git-checkpoint.ps1`（PowerShell；不提供 cmd `.bat` 版本，cmd 的代码页机制无法可靠解析脚本内中文提示，Windows 环境一律用 PowerShell 版）
-- **退出码语义**：`0`=`checkpoint=clean`（全部已提交，PASS）；`1`=`checkpoint=dirty`（有未提交改动，FAIL）；`20`=git 缺失；`21`=尚未 `git init`
+- **退出码语义**：`0`=`checkpoint=clean`（全部已提交，PASS）；`1`=`checkpoint=dirty`（有未提交改动，FAIL）；`20`=git 缺失；`21`=尚未 `git init`；`2`=项目目录不存在（传错目录，检查参数）
 - **`dirty`（退出码 1）**：先 `git add -A && git commit`（提交信息 `类型: 简述`）再继续，不许带着未提交改动进入下一阶段，也不许以「待用户确认后一起提交」为由跳过
 - **`20` / `21`**：Git 预检完成后的任何阶段出现即 FAIL——`20` 按 `references/git.md` 安装 git（唯一征询点）；`21` 立即补做预检初始化与首次提交
 - **检查点不过时**：不得把对应 `todo_tool` 条目标记为 completed，不得向用户报告完成

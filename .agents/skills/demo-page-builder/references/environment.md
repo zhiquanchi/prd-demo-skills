@@ -23,7 +23,7 @@
    是真 Node.js 还要再查主版本号，本项目工具链（Umi Max 4 / TypeScript 5 / 新版 npm）要求 **Node >= 18**：
 
    ```bash
-   node -p "const [maj,min]=process.versions.node.split('.').map(Number); (maj>18||(maj===18&&min>=0)) ? 'ok' : 'too old '+process.version"
+   node -p "Number(process.versions.node.split('.')[0]) >= 18 ? 'ok' : 'too old '+process.version"
    ```
 
    输出 `too old`（如 Node 12/14/16）时视为不可用，按下面第 3 步装一个达标的，不要用旧版本硬跑——`engines` 声明和工具链实际要求都已不支持。

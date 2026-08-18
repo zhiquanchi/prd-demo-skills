@@ -15,12 +15,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ALLOWED_TOP_LEVEL = ['使用说明', 'DOM 树与组件说明', '设计与用户体验', '功能说明', '对话过程摘要'];
+// DOM 树叶子唯一判据：<库>: 前缀（与 whitelist.md 的清单内组件库族一致；清单扩族时同步更新此处）
 const WHITELIST_PREFIXES = ['antd:', '@ant-design/pro-components:', '@ant-design/x:', '@ant-design/icons:', '@ant-design/x-sdk:'];
-// 白名单原子组件常见名（用于 DOM 树叶子检测）
-const WHITELIST_NAMES = ['Button', 'Card', 'Table', 'Form', 'Input', 'Select', 'Drawer', 'Popconfirm',
-  'Statistic', 'Avatar', 'Tag', 'Pagination', 'Space', 'Modal', 'InputNumber', 'DatePicker', 'Switch',
-  'Tabs', 'Menu', 'Layout', 'ProTable', 'ProForm', 'ProFormText', 'ProFormSelect', 'ProFormTextArea',
-  'ProCard', 'ProDescriptions', 'Sender', 'Bubble', 'Conversations', 'Prompts', 'ThoughtChain', 'Skeleton', 'Empty'];
 // 每个功能的必备用例字段（功能说明下每个功能必须包含的标题）
 const REQUIRED_USE_CASE_FIELDS = [
   '用例概述', '功能目标', '用户场景', '页面/界面说明',
@@ -155,6 +151,11 @@ function main() {
     check(leafViolations.length === 0, 'DOM 树叶子均为白名单组件',
       leafViolations.length ? leafViolations.join(' / ') : undefined);
   }
+  if (treeLines.length > 0) {
+    const bareLeaves = findLeavesWithoutAnnotations(treeLines);
+    check(bareLeaves.length === 0, 'DOM 树叶子带用途注释（# 字段/列名/按钮行为等，防粗粒度树）',
+      bareLeaves.length ? bareLeaves.join(' / ') : undefined);
+  }
 
   /* ---------- 8. 无 TODO / 待补充 / 无依据假设 ---------- */
   const placeholders = PLACEHOLDER_MARKERS.filter((m) => content.includes(m));
@@ -245,14 +246,26 @@ function findNonWhitelistLeaves(treeLines) {
     const stripped = text.replace(/^[│├└─\s]+/, '');        // 去掉左侧树形符号与缩进
     const namePart = stripped.split('#')[0].split('：')[0].trim();
     if (!namePart) continue;
-    // 区块标题类标签（后面跟冒号/纯文字且无组件标注）若成叶子，按不合规处理
-    const isWhitelist = WHITELIST_PREFIXES.some((p) => namePart.startsWith(p))
-      || WHITELIST_NAMES.some((n) => namePart.includes(n));
+    // 只认 <库>: 前缀，不维护组件名硬编码名单（避免与真实白名单漂移）；
+    // 无前缀的区块标题/裸组件名成为叶子一律不合规
+    const isWhitelist = WHITELIST_PREFIXES.some((p) => namePart.startsWith(p));
     if (!isWhitelist) {
-      violations.push(`原生叶子「${namePart}」`);
+      violations.push(`「${namePart}」（叶子须写成 <库>:<组件>，如 antd:Button）`);
     }
   }
   return violations;
+}
+
+/** 找 DOM 树中不带任何用途注释（# 或全/半角括注）的叶子节点——粗粒度树的信号 */
+function findLeavesWithoutAnnotations(treeLines) {
+  const bare = [];
+  for (let i = 0; i < treeLines.length; i++) {
+    if (!isLeaf(treeLines, i)) continue;
+    const stripped = treeLines[i].trim().replace(/^[│├└─\s]+/, '');
+    if (!stripped) continue;
+    if (!/[#（(]/.test(stripped)) bare.push(`「${stripped}」`);
+  }
+  return bare;
 }
 
 function escapeRegExp(s) {
