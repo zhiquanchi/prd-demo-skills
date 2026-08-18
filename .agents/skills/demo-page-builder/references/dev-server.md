@@ -11,6 +11,8 @@
 ```bash
 # macOS / Linux / WSL
 lsof -nP -iTCP:8000 -sTCP:LISTEN
+# 无 lsof 的最小化 Linux/WSL 环境改用（两种都空输出 = 端口未被占用）：
+ss -ltnp | grep :8000
 ```
 
 ```powershell
@@ -20,7 +22,7 @@ netstat -ano | findstr :8000 | findstr LISTENING
 Get-CimInstance Win32_Process -Filter "ProcessId=<PID>" | Select-Object ProcessId, CommandLine
 ```
 
-- **被本任务的旧进程占用**（命令行含 `max dev` / `umi` / `serve-dist.js`，或进一步确认进程工作目录就是当前项目：macOS/Linux/WSL 用 `lsof -p <PID> | grep cwd`，Windows 看上一步输出的 `CommandLine` 里的项目路径）→ 直接停掉旧进程（macOS/Linux/WSL：`kill <PID>`；Windows：`taskkill /PID <PID> /F`），继续使用 8000 端口起服务，保证用户手里的访问地址不变。
+- **被本任务的旧进程占用**（命令行含 `max dev` / `umi` / `serve-dist.js`，或进一步确认进程工作目录就是当前项目：macOS/Linux/WSL 用 `lsof -p <PID> | grep cwd`，无 lsof 时用 `readlink /proc/<PID>/cwd`；Windows 看上一步输出的 `CommandLine` 里的项目路径）→ 直接停掉旧进程（macOS/Linux/WSL：`kill <PID>`；Windows：`taskkill /PID <PID> /F`），继续使用 8000 端口起服务，保证用户手里的访问地址不变。
 - **被与本项目无关的进程占用** → **不要 kill**，按各模式规则换端口（模式 B 由 dev server 自动换；模式 A 用 `PORT=<其他端口>` 启动），并把新地址发给用户。
 - **未被占用** → 直接用 8000。
 
@@ -86,6 +88,8 @@ node scripts/serve-dist.js   # 长驻进程，优先用后台任务启动；若�
 
 `--api` 格式为 `/api/<name>[:field[,field...]]`，字段列表对应页面的数据契约（如 `rows`、`total`）；不写字段则只校验"HTTP 200 + JSON Content-Type + 可解析"。退出码非 0 即对应项失败（9=API 非 200、10=Content-Type 不是 JSON、11=JSON 非法或缺字段），其中 10/11 通常意味着 `/api/*` 落进了 SPA fallback 返回了 `index.html`——回看上一节的等价路由规则排查（`mock/<name>.json` 是否存在、serve-dist 是否需要重启）。端口不是 8000 时加 `--port`，不在项目根目录时加 `--project`。
 
+- **`--marker` 必须用 ASCII 特征串**：`max build` 会把产物里的中文字符串转义成 `\uXXXX`，中文 marker 在 `dist/` 的 JS 里永远搜不到（必报 exit 5，易误判为页面没打进产物）。选页面独有的 ASCII 内容做 marker——取数路径（如 `/api/keywords`）、英文文案、组件/类名等。
+
 通过时输出四类结果，缺一不可：
 
 ```text
@@ -144,7 +148,7 @@ npm run dev   # 优先用后台任务启动；若无后台任务功能，用 sub
 <skill目录>/scripts/posix/verify-page.sh --mode dev --route /<路由> --marker "<页面里的特征字符串>" --port <实际端口>
 ```
 
-它同时验证三件事：`src/.umi/core/route.tsx` 里已生成对应路由、路由访问返回 200、页面代码真的打进了**懒加载 chunk**（如 `src/pages/foo.tsx` 对应 `http://localhost:<实际端口>/src__pages__foo.async.js`，marker 能命中），而不是只在 `/umi.js` 里。退出码非 0 即对应项失败，按报错输出排查。dev 模式下同样支持 `--api`（Umi Mock 原生生效，主要用于确认路径与数据契约一致）。
+它同时验证三件事：`src/.umi/core/route.tsx` 里已生成对应路由、路由访问返回 200、页面代码真的打进了**懒加载 chunk**（如 `src/pages/foo.tsx` 对应 `http://localhost:<实际端口>/src__pages__foo.async.js`，marker 能命中），而不是只在 `/umi.js` 里。退出码非 0 即对应项失败，按报错输出排查。dev 模式下同样支持 `--api`（Umi Mock 原生生效，主要用于确认路径与数据契约一致）。`--marker` 同样统一用 ASCII 特征串（原因见模式 A 的说明）。
 
 Windows（无 bash）用对应的 PowerShell 版脚本（输出与退出码一致），**端口必须传启动日志里的实际值**：
 

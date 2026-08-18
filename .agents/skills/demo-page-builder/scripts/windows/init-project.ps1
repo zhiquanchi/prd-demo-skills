@@ -1,4 +1,4 @@
-# init-project.ps1 — demo-page-builder 就地初始化（PowerShell 版）
+﻿# init-project.ps1 — demo-page-builder 就地初始化（PowerShell 版）
 # 行为、输出与退出码和 init-project.sh 一致：
 #   0=成功；1=模板缺失/复制失败/改名失败；2=项目目录不存在；3=拒绝在 skill 目录内初始化；4=已有 package 清单
 # 用法：init-project.ps1 [项目目录]，不带参数时用当前目录

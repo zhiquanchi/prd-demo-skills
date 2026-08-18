@@ -47,32 +47,45 @@ cp -r /tmp/prd-demo-skills/.agents/skills /path/to/your-project/.agents/
 
 ## 使用前提
 
-无需提前准备工程：skill 以会话当前工作目录为项目根，目录为空或缺少 `package.json` 时会用 `references/package.json` 基准清单在当前目录就地初始化 Umi Max + React 18 + antd 5 工程。详细的环境探测、安装受阻处理见 `references/environment.md`，环境判断、起服务与验证规则见 `references/dev-server.md`。
+无需提前准备工程：skill 以会话当前工作目录为项目根，目录为空或缺少 `package.json` 时会用 `assets/project-template/` 基准清单（package.json + package-lock.json + scripts）在当前目录就地初始化 Umi Max + React 18 + antd 5 工程。详细的环境探测、安装受阻处理见 `references/environment.md`，环境判断、起服务与验证规则见 `references/dev-server.md`。
 
 ## 包含的 skill
 
 ```
 .agents/skills/
-└── demo-page-builder/                # 唯一入口 skill：项目定位（当前工作目录就地初始化）、组件库白名单（antd / Ant Design Pro / Ant Design X）、先搜后用、交付确认
-    ├── SKILL.md
-    └── references/                   # additional materials（非独立 skill，由 SKILL.md 引用）
-        ├── environment.md            # node runtime 探测与安装、受阻处理、依赖安装的细则
-        ├── dev-server.md             # 起服务与页面生效验证的细则（启动前检查 8000 端口被本任务旧进程占用则 kill 复用；WSL：生产构建+静态服务；其他环境：dev server 热更新）
-        ├── routes.md                 # 路由与导航细则：首页空白自动跳转第一个有内容页面、新增页面必须绑定左侧导航入口
-        ├── replicate.md              # 参考原型复刻细则：用户提供 HTML/截图/原型时，先理解原稿再用当前技术栈一比一复刻
-        ├── mock.md                   # 示例数据用 Umi mock 细则：生成/复刻时的示例数据一律写入 mock/ 目录、页面用 request 取数，不放 UI 组件里
-        ├── common-components.md      # 公共组件细则：侧边栏等跨页面布局组件必须提取为公共组件复用，样式不改、使用项目原有样式
-        ├── handover.md               # 交付确认细则：用户确认满意后打中文语义 git tag 并生成同名交接文档（docs/handover/<tag名>.md），新增页面与复刻 demo 均适用：描述使用者实际操作逻辑并配操作流程图、给出页面 DOM 树并说明每个组件是什么、补充设计与用户体验与功能说明、对话过程摘要放最后；格式可参考 handover.example.md
-        ├── handover.example.md       # 交接文档示例：以「用户管理页」演示五部分写法（使用说明+流程图、DOM树与组件说明、设计与UX、功能说明、对话过程摘要），其中 DOM 树最底层终止于白名单原子组件
-        └── package.json              # 已知可用的依赖清单基准（新项目就地初始化时复制使用）
+└── demo-page-builder/                # 唯一入口 skill：项目定位（当前工作目录就地初始化）、组件库白名单（antd / Ant Design Pro / Ant Design X）、先搜后用、Subagent 并行、交付确认
+    ├── SKILL.md                      # 总控：流程编排与硬性规则（开工前置工具检测与任务清单、Git 检查点钩子、进度上报、交付确认）
+    ├── references/                   # additional materials（非独立 skill，由 SKILL.md 引用）
+    │   ├── whitelist.md              # 组件库白名单与清单外拒绝流程（依赖总闸，以 assets/project-template/package.json 为唯一标准）
+    │   ├── environment.md            # node runtime 探测与安装、受阻处理、依赖安装的细则
+    │   ├── dev-server.md             # 起服务与页面生效验证的细则（启动前检查 8000 端口被本任务旧进程占用则 kill 复用；WSL：生产构建+静态服务；其他环境：dev server 热更新）
+    │   ├── routes.md                 # 路由与导航细则：路径命名与结构规范（kebab-case + REST）、首页空白自动跳转、新增页面必须绑定可点击入口、动态路由 $param 规则
+    │   ├── directory-structure.md    # Umi 官方目录结构对照与按需创建规则、白名单模式 .gitignore
+    │   ├── layout-patterns.md        # Umi Max 全局布局模式：<Outlet/> 而非 {children}（用错会内容区空白）
+    │   ├── common-components.md      # 公共组件细则：侧边栏等跨页面布局组件必须提取为公共组件复用，样式不改、禁止重复侧边栏
+    │   ├── replicate.md              # 参考原型复刻细则：用户提供 HTML/截图/原型时，先理解原稿再用当前技术栈一比一复刻
+    │   ├── mock.md                   # 示例数据用 Umi mock 细则：生成/复刻时的示例数据一律写入 mock/ 目录（<domain>.json 唯一数据源 + <domain>.ts 导出接口）、页面用 request 取数，不放 UI 组件里
+    │   ├── git.md                    # Git 预检/初始化/提交/推送频率、操作白名单、环境禁止 git 时的权限申请
+    │   ├── use-cases.md              # 业务说明（用例）撰写细则：用例概述 → 正常流程 → 异常流程 → 业务规则
+    │   ├── handover.md               # 交付确认细则：用户确认满意后打中文语义 git tag 并生成同名交接文档（docs/handover/<tag名>.md），多页面按页面拆分、存量核对、已交付页面的后续修订；格式可参考 handover.example.md
+    │   ├── handover.template.md      # 交接文档固定模板：五个一级章节 + 每功能 0–8 用例字段，生成时逐字照抄只换占位符
+    │   ├── handover.example.md       # 交接文档示例：以「用户管理页」演示五部分写法（使用说明+流程图、DOM树与组件说明、设计与UX、功能说明、对话过程摘要），其中 DOM 树最底层终止于白名单原子组件
+    │   └── mermaid.md                # Mermaid 生成细则：交接文档的用户操作流程图 / 用户流程（flowchart）
+    ├── scripts/                      # 机器护栏脚本（输出格式与退出码 POSIX/Windows 一致）
+    │   ├── posix/                    # check-environment.sh / init-project.sh / verify-page.sh / git-checkpoint.sh（bash）
+    │   ├── windows/                  # 同名 PowerShell 版（.ps1；不提供 cmd .bat，cmd 环境请改用 PowerShell）
+    │   ├── serve-dist.js             # WSL 静态服务：express 4 静态托管 + mock JSON 等价 API 路由（防 SPA fallback 白屏）
+    │   └── validate-handover.mjs     # 交接文档自检脚本：逐项输出 [PASS]/[FAIL]，全部通过才能报告完成
+    └── assets/
+        └── project-template/         # 就地初始化模板：package.json + package-lock.json（依赖清单基准）+ scripts/（serve-dist.js、validate-handover.mjs）
 ```
 
-- **demo-page-builder**：生成 demo、画页面、生成 HTML 等任务的入口。**始终以用户会话的当前工作目录为项目根**，当前目录不是 Umi Max 工程时就地初始化（复制 `references/package.json`、生成 `.gitignore`、安装依赖），严禁写入 skill 自身所在的分发仓库。组件库严格限定 Ant Design / Ant Design Pro / Ant Design X，禁止其他组件库；长耗时环节必须定时上报任务进度，防止用户误以为卡死；每个改动必须生效（非 WSL 热更新/重启服务、WSL 重新构建）并交给用户确认效果；用户确认满意后打中文语义 git tag 并生成同名交接文档，作为交付收尾。
+- **demo-page-builder**：生成 demo、画页面、生成 HTML 等任务的入口。**始终以用户会话的当前工作目录为项目根**，当前目录不是 Umi Max 工程时就地初始化（复制 `assets/project-template/` 的依赖清单与脚本、生成白名单模式 `.gitignore`、安装依赖），严禁写入 skill 自身所在的分发仓库。组件库严格限定 Ant Design / Ant Design Pro / Ant Design X，禁止其他组件库；长耗时环节必须定时上报任务进度，防止用户误以为卡死；每个改动必须生效（非 WSL 热更新/重启服务、WSL 重新构建）并交给用户确认效果；用户确认满意后打中文语义 git tag 并生成同名交接文档，作为交付收尾。
 - **references/environment.md**：环境准备细则——node runtime 探测（识别 bun 壳）、无 runtime 时项目级免安装部署（Linux/macOS/Windows）、公司环境拦截时停止并上报、`--legacy-peer-deps` 安装。
 - **references/dev-server.md**：起服务与验证细则——启动前先查 8000 端口：被本任务旧进程占用则 kill 复用原端口，被无关进程占用则换端口；再判断环境：WSL 用生产构建 + express 静态服务（规避 WSL 转发层断开 HMR WebSocket 导致的整页刷新），其他环境用 dev server 热更新（新目录后必须重启）；用懒加载 chunk 验证页面真的打进产物。
 - **references/routes.md**：路由与页面导航细则——Umi 约定式路由速查；首页 `/` 不允许空白，自动跳转第一个有内容的页面；新增页面必须分析并绑定左侧导航入口（已有菜单项必绑跳转、缺入口则补菜单项），菜单选中态跟随路由。
 - **references/replicate.md**：参考原型复刻细则——用户提供 HTML 文件/代码片段、截图、设计稿、线上 URL 等参考物时，先拆解原稿产出复刻清单（区块、精确配色、字体间距、交互、文案），再将原稿元素映射到白名单组件，用当前技术栈一比一复刻，最后截图与原稿对比验证还原度。
-- **references/mock.md**：示例数据用 Umi mock 细则——生成 demo 和复刻原型时，页面所需的示例数据（列表、表格、卡片、图表、表单回填、详情等）一律用 Umi mock（https://umijs.org/docs/guides/mock）：数据写入项目根 `mock/*.ts`，页面用 Umi Max 内置 `request` 异步取数，禁止把示例数据硬编码在 UI 组件里；可用清单内已有的 `mockjs` 生成随机/批量数据。
+- **references/mock.md**：示例数据用 Umi mock 细则——生成 demo 和复刻原型时，页面所需的示例数据（列表、表格、卡片、图表、表单回填、详情等）一律用 Umi mock（https://umijs.org/docs/guides/mock）：数据写入项目根 `mock/<domain>.json`（唯一数据源）+ `mock/<domain>.ts`（导入 JSON 导出接口），页面用 Umi Max 内置 `request` 异步取数，禁止把示例数据硬编码在 UI 组件里；可用清单内已有的 `mockjs` 生成随机/批量数据。
 - **references/common-components.md**：公共组件规则——侧边栏等跨页面布局组件必须提取到 `src/components/` 统一引用，禁止逐页复制；样式以项目现有实现为唯一来源，不改样式、不做覆盖；新增页面只允许加菜单项、绑跳转这类结构性变更。
 - **references/handover.md**：交付确认细则——用户明确认可后，按 `deliver-<中文语义名>-<日期>-<序号>` 打 git tag 并推送，同时生成同名交接文档 `docs/handover/<tag名>.md`（**新增页面与复刻 demo 均适用**：描述使用者实际使用页面的操作逻辑并配用户操作流程图、给出页面 DOM 树并说明每个组件是什么、补充设计与用户体验（设计原则/用户流程/原型/全局状态）与功能说明（目标/场景/字段规则/状态/验收标准）、对话过程摘要放最后），作为每次交付的收尾动作。**硬性闭环：先套 `references/handover.template.md` 固定模板生成，生成后必须运行 `scripts/validate-handover.mjs` 自检，全部 `[PASS]` 才能报告完成**。
 - **references/handover.template.md**：交接文档固定模板——五个一级章节 + 每个功能的 0–8 完整用例字段（用例概述/功能目标/用户场景/页面界面说明/正常流程/业务规则/状态表现/异常流程/验收标准），生成交接文档时逐字照抄、只换占位符。

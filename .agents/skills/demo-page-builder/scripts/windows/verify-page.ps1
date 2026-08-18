@@ -1,4 +1,4 @@
-# verify-page.ps1 — demo-page-builder 页面生效验证（PowerShell 版）
+﻿# verify-page.ps1 — demo-page-builder 页面生效验证（PowerShell 版）
 # 行为、输出与退出码和 verify-page.sh 一致：
 #   0=通过；2=参数错误；3=路由不可达；4=dist 缺失；5=marker 不在 dist；6=路由文件缺失；7=路由未生成；8=marker 不在 dev 懒加载 chunk；
 #   9=API HTTP 状态非 200；10=API Content-Type 不是 JSON；11=API 响应不是合法 JSON 或缺必需字段

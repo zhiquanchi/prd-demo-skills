@@ -2,7 +2,7 @@
 
 **依赖总闸**：所有可用的库以 `assets/project-template/package.json` 的依赖清单为准——只允许 import 清单里已有的包，**禁止安装任何新依赖**（`npm install <pkg>` 一律不行）。清单里没有的能力，用清单内已有的库实现，或如实告诉用户做不了，不擅自引入。
 
-**唯一标准**：只允许使用 `assets/project-template/package.json` 的 `dependencies` 清单里已有的包和其中的组件。判断依据只有这一份清单——不看 `node_modules` 里实际装了什么，不看历史代码里 import 过什么。**绝不允许引入清单之外的任何新组件、新库、新依赖**（`npm install <pkg>` 一律不行，手写/vendored 复制外部组件代码也不行）。
+**唯一标准**：只允许使用 `assets/project-template/package.json` 依赖清单（`dependencies` + `devDependencies`）里已有的包和其中的组件——工具类包（如 `express`、`mockjs`、`typescript`）多在 `devDependencies`，同样属清单内。判断依据只有这一份清单——不看 `node_modules` 里实际装了什么，不看历史代码里 import 过什么。**绝不允许引入清单之外的任何新组件、新库、新依赖**（`npm install <pkg>` 一律不行，手写/vendored 复制外部组件代码也不行）。
 
 清单内主要能力速查（以 `assets/project-template/package.json` 实际内容为准）：
 

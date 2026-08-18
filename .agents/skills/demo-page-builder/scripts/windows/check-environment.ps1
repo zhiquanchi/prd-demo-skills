@@ -1,4 +1,4 @@
-# check-environment.ps1 — demo-page-builder 环境一键探测（PowerShell 版）
+﻿# check-environment.ps1 — demo-page-builder 环境一键探测（PowerShell 版）
 # 输出格式与退出码和 check-environment.sh 完全一致：
 #   退出码 0=就绪；10=node 缺失；11=node 是 bun 壳；12=node 版本过旧；13=npm 缺失；2=参数错误
 param(
