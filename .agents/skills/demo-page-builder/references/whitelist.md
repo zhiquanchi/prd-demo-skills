@@ -15,9 +15,11 @@
 | 图表 | **echarts** + `echarts-for-react` |
 | 流程图/画布 | **@xyflow/react**、`dagre`、`fabric`、`konva`/`react-konva`、`react-sketch-canvas` |
 | 文本流程图/结构图渲染 | **mermaid** |
-| 富文本/Markdown 编辑 | **@tinymce/tinymce-react**、`@uiw/react-md-editor`、`react-markdown` + `remark-gfm` |
-| 样式定制 | **antd-style**、`classnames`/`clsx`/`tailwind-merge` |
+| 富文本/Markdown 编辑 | **@uiw/react-md-editor**、`react-markdown` + `remark-gfm`（`@tinymce/tinymce-react` 为历史残留、不推荐，见下方「使用边界」） |
+| 样式定制 | **antd-style**、`classnames`/`clsx`（`tailwind-merge` 为历史残留、不推荐，见下方「使用边界」） |
 | 工具库 | `lodash`、`dayjs`、`rc-virtual-list`、`react-fast-marquee` 等清单内其余包 |
+
+**使用边界（与 `references/environment.md`「安装依赖」节一致）**：清单内部分包是历史残留或特定场景工具，**不作为 UI 组件能力推荐**——`tailwindcss`/`tailwind-merge`、`@tinymce/tinymce-react`、`socket.io-client` 等；绘制/流程引擎（`fabric`、`konva`/`react-konva`、`@xyflow/react`、`dagre`、`mermaid`、`echarts`、`react-sketch-canvas` 等）仅在需求明确涉及图表/画布/流程图时可用，UI 组件仍只走本表（antd / ProComponents / Ant Design X）。
 
 ## 用户点名要求清单外组件时：直接拒绝 + 给替代（无例外）
 
