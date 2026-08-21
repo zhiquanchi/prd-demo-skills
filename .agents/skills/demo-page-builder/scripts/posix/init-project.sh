@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# init-project.sh — demo-page-builder 就地初始化（POSIX 版）
+# 行为、输出与退出码和 init-project.ps1 一致：
+#   0=成功；1=模板缺失/复制失败/改名失败（set -e 提前退出）；2=项目目录不存在；3=拒绝在 skill 目录内初始化；4=已有 package 清单
+# 用法：init-project.sh [项目目录]，不带参数时用当前目录
+# 依赖 node 改写 package.json/package-lock.json 的 name（先跑 check-environment.sh 确认 node 就绪）
+
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 skill_dir="$(cd "$script_dir/../.." && pwd -P)"
 template_dir="$skill_dir/assets/project-template"
