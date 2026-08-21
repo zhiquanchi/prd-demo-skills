@@ -2,6 +2,8 @@
 
 React demo 页面构建的 agent skills，适用于 Umi Max + Ant Design 技术栈。目录结构遵循 [Agent Skills 开放标准](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)：每个 skill 一个扁平目录，目录名即 skill 名，`SKILL.md` 为入口，支撑材料放同级并由 SKILL.md 引用。
 
+不会写代码、第一次用？直接看 [小白使用文档](docs/小白使用文档.md)。
+
 ## 安装方式一：让 agent 自动安装（推荐）
 
 在支持 skills 的 agent 会话中，直接对 agent 说：
@@ -91,4 +93,3 @@ cp -r /tmp/prd-demo-skills/.agents/skills /path/to/your-project/.agents/
 - **references/handover.md**：交付确认细则——用户明确认可后，按 `deliver-<中文语义名>-<日期>-<序号>` 打 git tag 并推送，同时生成同名交接文档 `docs/handover/<tag名>.md`（**新增页面与复刻 demo 均适用**：描述使用者实际使用页面的操作逻辑并配用户操作流程图、给出页面 DOM 树并说明每个组件是什么、补充设计与用户体验（设计原则/用户流程/原型/全局状态）与功能说明（目标/场景/字段规则/状态/验收标准）、对话过程摘要放最后），作为每次交付的收尾动作。**硬性闭环：先套 `references/handover.template.md` 固定模板生成，生成后必须运行 `scripts/validate-handover.mjs` 自检，全部 `[PASS]` 才能报告完成**。
 - **references/handover.template.md**：交接文档固定模板——五个一级章节 + 每个功能的 0–8 完整用例字段（用例概述/功能目标/用户场景/页面界面说明/正常流程/业务规则/状态表现/异常流程/验收标准），生成交接文档时逐字照抄、只换占位符。
 - **scripts/validate-handover.mjs**：交接文档自检脚本——`node scripts/validate-handover.mjs docs/handover/<tag名>.md`，机器校验五个一级章节唯一性、mermaid/flowchart、Design & UX 独立用户流程、每个功能完整用例字段、异常流程为表格、DOM 树叶子为白名单组件、无 TODO/待补充/无依据假设、文件名与 tag 一致；任一 `[FAIL]` 必须修正后重跑。
-
