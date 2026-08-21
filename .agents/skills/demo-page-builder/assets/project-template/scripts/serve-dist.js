@@ -1,12 +1,28 @@
 const fs = require('fs');
-const express = require('express');
 const path = require('path');
 
-const app = express();
-const port = Number(process.env.PORT) || 8000;
-const projectDir = path.join(__dirname, '..');
+const projectDir = path.resolve(process.argv[2] || process.cwd());
 const distDir = path.join(projectDir, 'dist');
 const mockDir = path.join(projectDir, 'mock');
+const indexFile = path.join(distDir, 'index.html');
+const port = Number(process.env.PORT) || 8000;
+
+if (!fs.existsSync(indexFile)) {
+  console.error(`Missing build output: ${indexFile}`);
+  console.error('Run npm run build before starting the static server.');
+  process.exit(2);
+}
+
+let express;
+try {
+  express = require(require.resolve('express', { paths: [projectDir] }));
+} catch {
+  console.error(`Cannot resolve express from project: ${projectDir}`);
+  console.error('Install the project dependencies before starting the static server.');
+  process.exit(3);
+}
+
+const app = express();
 
 // Mock API parity for static serving: mock/<name>.json => GET /api/<name>.
 // Umi mock only runs in dev mode; without these routes the SPA fallback below
@@ -40,10 +56,7 @@ app.use('/api', (_request, response) => {
 });
 
 app.use(express.static(distDir));
-app.get('*', (_request, response) => {
-  response.sendFile(path.join(distDir, 'index.html'));
-});
-
+app.get('*', (_request, response) => response.sendFile(indexFile));
 app.listen(port, () => {
-  console.log(`Serving dist at http://localhost:${port} (${mockApiCount} mock API route(s))`);
+  console.log(`Serving ${distDir} at http://localhost:${port} (${mockApiCount} mock API route(s))`);
 });
